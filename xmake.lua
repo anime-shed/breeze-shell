@@ -62,8 +62,9 @@ target("shell")
     add_packages("blook", "reflect-cpp", "wintoast", "cpptrace", "yalantinglibs", "breeze-ui")
     add_syslinks("oleacc", "ole32", "oleaut32", "uuid", "comctl32", "comdlg32", "gdi32", "user32", "shell32", "kernel32", "advapi32", "psapi", "Winhttp", "dbghelp")
     add_rules("utils.bin2c", {
-        extensions = {".js"}
+        extensions = {".js", ".json"}
     })
+    add_files("resources/locales/en-US.json", "resources/locales/zh-CN.json")
     set_version(version)
     set_configdir("src/shell")
     add_configfiles("src/shell/build_info.h.in")

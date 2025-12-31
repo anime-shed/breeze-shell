@@ -14,12 +14,40 @@
 
 namespace mb_shell {
 
+
+namespace {
+const unsigned char g_en_US_json[] = {
+#include "en-US.json.h"
+};
+const unsigned char g_zh_CN_json[] = {
+#include "zh-CN.json.h"
+};
+
+void ensure_file(const std::filesystem::path& path, const unsigned char* data, size_t size) {
+    if (!std::filesystem::exists(path)) {
+        try {
+            std::filesystem::create_directories(path.parent_path());
+            std::ofstream f(path, std::ios::binary);
+            if (f) {
+                f.write(reinterpret_cast<const char*>(data), size);
+                std::cout << "Extracted default locale: " << path << std::endl;
+            }
+        } catch (const std::exception& e) {
+            std::cerr << "Failed to extract locale " << path << ": " << e.what() << std::endl;
+        }
+    }
+}
+}
+
 i18n_manager& i18n_manager::instance() {
     static i18n_manager instance;
     return instance;
 }
 
 i18n_manager::i18n_manager() : current_lang_("en-US"), is_rtl_(false) {
+    auto locales_dir = config::data_directory() / "locales";
+    ensure_file(locales_dir / "en-US.json", g_en_US_json, sizeof(g_en_US_json));
+    ensure_file(locales_dir / "zh-CN.json", g_zh_CN_json, sizeof(g_zh_CN_json));
     reload();
 }
 
