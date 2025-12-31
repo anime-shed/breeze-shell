@@ -183,7 +183,7 @@ bool i18n_manager::load_locale(const std::string& lang) {
         
         // Simple JSON parsing for flat key-value structure
         // Format: {"key": "value", ...}
-        std::regex kv_regex(R"("([^"]+)"\s*:\s*"([^"]*)")");
+        std::regex kv_regex(R"kv("([^"]+)"\s*:\s*"([^"]*)")kv");
         std::smatch match;
         std::string::const_iterator search_start(json_str.cbegin());
         
@@ -245,7 +245,7 @@ void i18n_manager::load_plugin_locales() {
                                       std::istreambuf_iterator<char>());
                 
                 // Parse plugin locale JSON
-                std::regex kv_regex(R"("([^"]+)"\s*:\s*"([^"]*)")");
+                std::regex kv_regex(R"kv("([^"]+)"\s*:\s*"([^"]*)")kv");
                 std::smatch match;
                 std::string::const_iterator search_start(json_str.cbegin());
                 
