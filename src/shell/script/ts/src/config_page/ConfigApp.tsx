@@ -17,9 +17,23 @@ import PluginStore from "./PluginStore";
 import PluginConfig from "./PluginConfig";
 import { useState, useEffect, ReactNode } from "react";
 
+interface ContextMenuConfig {
+    theme?: any;
+    animation?: any;
+    [key: string]: any;
+}
+
+interface GlobalConfig {
+    context_menu?: ContextMenuConfig;
+    debug_console?: boolean;
+    plugin_load_order?: any[];
+    language?: string;
+    [key: string]: any;
+}
+
 interface ProviderValues {
-    global: { config: any; update: (configPatch: any) => void };
-    contextMenu: { config: any; update: (newConfig: any) => void };
+    global: { config: GlobalConfig; update: (configPatch: Partial<GlobalConfig>) => void };
+    contextMenu: { config: ContextMenuConfig; update: (newConfig: ContextMenuConfig) => void };
     debugConsole: { value: boolean; update: (value: boolean) => void };
     pluginLoadOrder: { order: any[]; update: (order: any[]) => void };
     updateData: { updateData: any; setUpdateData: (data: any) => void };
@@ -98,12 +112,18 @@ export const ConfigApp = () => {
         saveConfig(newGlobal);
     };
 
-    const updateGlobalConfig = (configPatch: any) => {
+    const updateGlobalConfig = (configPatch: Partial<GlobalConfig>) => {
         const newGlobal = { ...config, ...configPatch };
         setConfig(newGlobal);
-        if (configPatch.context_menu) setContextMenuConfig(configPatch.context_menu);
-        if (configPatch.debug_console !== undefined) setDebugConsole(configPatch.debug_console);
-        if (configPatch.plugin_load_order) setPluginLoadOrder(configPatch.plugin_load_order);
+        if (Object.prototype.hasOwnProperty.call(configPatch, 'context_menu')) {
+            setContextMenuConfig(configPatch.context_menu || {});
+        }
+        if (Object.prototype.hasOwnProperty.call(configPatch, 'debug_console')) {
+            setDebugConsole(configPatch.debug_console || false);
+        }
+        if (Object.prototype.hasOwnProperty.call(configPatch, 'plugin_load_order')) {
+            setPluginLoadOrder(configPatch.plugin_load_order || []);
+        }
         saveConfig(newGlobal);
     };
 
