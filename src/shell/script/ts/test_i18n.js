@@ -2,7 +2,8 @@
 // Simple verification script for i18n interpolation logic
 
 const interpolate = (str, params) => {
-    return str.replace(/{(\w+)}/g, (match, key) => {
+    // Match alphanumeric, underscores, dots, and hyphens (matches C++ regex)
+    return str.replace(/{([\w.-]+)}/g, (match, key) => {
         return params.hasOwnProperty(key) ? params[key] : match;
     });
 };
@@ -37,6 +38,18 @@ const tests = [
         template: "Hello World",
         params: { name: "User" },
         expected: "Hello World"
+    },
+    {
+        name: "Placeholder with dot",
+        template: "Hello {user.name}!",
+        params: { "user.name": "John Doe" },
+        expected: "Hello John Doe!"
+    },
+    {
+        name: "Placeholder with hyphen",
+        template: "Status: {my-status}",
+        params: { "my-status": "Active" },
+        expected: "Status: Active"
     }
 ];
 

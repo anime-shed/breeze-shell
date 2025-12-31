@@ -49,13 +49,13 @@ const ContextMenuConfig = memo(() => {
     };
 
     const getCurrentPreset = (current: any, presets: any) => {
-        if (!current) return t("theme.default");
+        if (!current) return "default";
         for (const [name, preset] of Object.entries(presets)) {
             if (preset && checkPresetMatch(current, preset)) {
                 return name;
             }
         }
-        return t("theme.custom");
+        return "custom";
     };
 
     const currentThemePreset = getCurrentPreset(currentTheme, theme_presets);
@@ -105,7 +105,7 @@ const ContextMenuConfig = memo(() => {
                                 }
                             }}
                         >
-                            <Text fontSize={14}>{name}</Text>
+                            <Text fontSize={14}>{t(`theme.${name}`) || name}</Text>
                         </Button>
                     ))}
                 </flex>
@@ -131,7 +131,7 @@ const ContextMenuConfig = memo(() => {
                                 }
                             }}
                         >
-                            <Text fontSize={14}>{name}</Text>
+                            <Text fontSize={14}>{t(`animation.${name}`) || name}</Text>
                         </Button>
                     ))}
                 </flex>

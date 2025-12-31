@@ -71,13 +71,13 @@ export const checkPresetMatch = (current: any, preset: any) => {
 };
 
 export const getCurrentPreset = (current: any, presets: any) => {
-    if (!current) return "默认";
+    if (!current) return "default";
     for (const [name, preset] of Object.entries(presets)) {
         if (preset && checkPresetMatch(current, preset)) {
             return name;
         }
     }
-    return "自定义";
+    return "custom";
 };
 
 // Config file operations
@@ -130,5 +130,5 @@ export const isPluginInstalled = (plugin: any) => {
 
 export const getPluginVersion = (installPath: string) => {
     const local_version_match = shell.fs.read(installPath).match(/\/\/ @version:\s*(.*)/);
-    return local_version_match ? local_version_match[1] : '未安装';
+    return local_version_match ? local_version_match[1] : t('plugins.not_installed');
 };

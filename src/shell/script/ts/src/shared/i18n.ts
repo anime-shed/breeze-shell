@@ -6,9 +6,9 @@ import * as shell from "mshell"
  * @param params Optional interpolation parameters
  * @returns Translated string with placeholders replaced
  */
-export const t = (key: string, params?: Record<string, string>): string => {
+export const t = (key: string, params?: Record<string, string | number | boolean>): string => {
     // If params provided, use the C++ interpolation binding
-    if (params && Object.keys(params).length > 0) {
+    if (params) {
         return shell.breeze.get_translation_with_params(key, params);
     }
 

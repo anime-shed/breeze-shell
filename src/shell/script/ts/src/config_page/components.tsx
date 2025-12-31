@@ -2,18 +2,19 @@ import { breeze } from "mshell";
 import { showMenu, useHoverActive } from "./utils";
 import { type ReactNode } from "react";
 import { ICON_MORE_VERT } from "./constants";
+import { t } from "../shared/i18n";
 
 import { useState, useEffect, memo, createContext, useContext, useMemo } from "react";
 
 // Icon element creator
 export const iconElement = (svg: string, width = 14) => (
-    <img 
+    <img
         svg={svg.replace(
             '<svg ',
             `<svg fill="${breeze.is_light_theme() ? '#000000ff' : '#ffffffff'}" `
-        )} 
-        width={width} 
-        height={width} 
+        )}
+        width={width}
+        height={width}
     />
 );
 
@@ -310,7 +311,7 @@ export const PluginItem = memo(({
                 </Text>
                 {isPrioritized && (
                     <flex padding={4}>
-                        <Text fontSize={10}>优先加载</Text>
+                        <Text fontSize={10}>{t("settings.priority_load_plugins")}</Text>
                     </flex>
                 )}
             </flex>

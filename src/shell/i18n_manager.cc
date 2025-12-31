@@ -9,6 +9,8 @@
 #include <set>
 
 #include "rfl/json.hpp"
+#include "yyjson.h"
+#include <cstring>
 
 #include "windows.h"
 
@@ -205,22 +207,50 @@ bool i18n_manager::load_locale(const std::string& lang) {
     std::string json_str((std::istreambuf_iterator<char>(file)),
                           std::istreambuf_iterator<char>());
     
-    auto result = rfl::json::read<std::map<std::string, std::string>>(json_str);
-    if (!result) {
-        std::cerr << "Failed to parse locale file " << locale_path << ": " << result.error().what() << std::endl;
+    // Use yyjson for dynamic type handling (supports mixed-type JSON)
+    yyjson_doc* doc = yyjson_read(json_str.c_str(), json_str.length(), 0);
+    if (!doc) {
+        std::cerr << "Failed to parse locale file: " << locale_path << std::endl;
         return false;
     }
-
+    
+    yyjson_val* root = yyjson_doc_get_root(doc);
+    if (!yyjson_is_obj(root)) {
+        std::cerr << "Locale root is not an object: " << locale_path << std::endl;
+        yyjson_doc_free(doc);
+        return false;
+    }
+    
     auto& lang_translations = translations_[lang];
-    for (const auto& [key, value] : result.value()) {
-        lang_translations[key] = value;
+    
+    size_t idx, max;
+    yyjson_val *key, *val;
+    yyjson_obj_foreach(root, idx, max, key, val) {
+        const char* key_str = yyjson_get_str(key);
         
-        // Track core keys (not plugin keys)
-        if (!key.starts_with("$metadata")) {
-            core_keys_.insert(key);
+        if (strcmp(key_str, "$metadata") == 0 && yyjson_is_obj(val)) {
+            // Extract metadata with flattened keys (e.g., $metadata.direction)
+            size_t m_idx, m_max;
+            yyjson_val *m_key, *m_val;
+            yyjson_obj_foreach(val, m_idx, m_max, m_key, m_val) {
+                if (yyjson_is_str(m_val)) {
+                    std::string flat_key = std::string("$metadata.") + yyjson_get_str(m_key);
+                    lang_translations[flat_key] = yyjson_get_str(m_val);
+                }
+            }
+        } else if (yyjson_is_str(val)) {
+            // Regular translation key
+            lang_translations[key_str] = yyjson_get_str(val);
+            if (!std::string(key_str).starts_with("$metadata")) {
+                core_keys_.insert(key_str);
+            }
+        } else {
+            // Skip non-string values (arrays, numbers, nested objects)
+            std::cerr << "Warning: Skipping non-string value for key: " << key_str << std::endl;
         }
     }
     
+    yyjson_doc_free(doc);
     return true;
 }
 
@@ -256,29 +286,46 @@ void i18n_manager::load_plugin_locales() {
                 std::string json_str((std::istreambuf_iterator<char>(file)),
                                       std::istreambuf_iterator<char>());
                 
-                auto result = rfl::json::read<std::map<std::string, std::string>>(json_str);
-                
-                if (!result) {
-                    std::cerr << "Failed to parse plugin locale file " << lang_file.path() 
-                              << ": " << result.error().what() << std::endl;
+                // Use yyjson for dynamic type handling
+                yyjson_doc* doc = yyjson_read(json_str.c_str(), json_str.length(), 0);
+                if (!doc) {
+                    std::cerr << "Failed to parse plugin locale file: " << lang_file.path() << std::endl;
                     continue;
                 }
                 
-                for (const auto& [key, value] : result.value()) {
+                yyjson_val* root = yyjson_doc_get_root(doc);
+                if (!yyjson_is_obj(root)) {
+                    std::cerr << "Plugin locale root is not an object: " << lang_file.path() << std::endl;
+                    yyjson_doc_free(doc);
+                    continue;
+                }
+                
+                size_t idx, max;
+                yyjson_val *key, *val;
+                yyjson_obj_foreach(root, idx, max, key, val) {
+                    const char* key_str = yyjson_get_str(key);
+                    
                     // Skip metadata keys
-                    if (key.starts_with("$metadata")) {
+                    if (strcmp(key_str, "$metadata") == 0 || std::string(key_str).starts_with("$metadata")) {
+                        continue;
+                    }
+                    
+                    // Only process string values
+                    if (!yyjson_is_str(val)) {
                         continue;
                     }
                     
                     // Warn if attempting to override core key
-                    if (core_keys_.find(key) != core_keys_.end()) {
+                    if (core_keys_.find(key_str) != core_keys_.end()) {
                         std::cerr << "Warning: Plugin " << plugin_name 
-                                  << " attempted to override core key: " << key << std::endl;
+                                  << " attempted to override core key: " << key_str << std::endl;
                         continue;
                     }
                     
-                    plugin_translations_[lang][key] = value;
+                    plugin_translations_[lang][key_str] = yyjson_get_str(val);
                 }
+                
+                yyjson_doc_free(doc);
             }
         }
     } catch (const std::exception& e) {
