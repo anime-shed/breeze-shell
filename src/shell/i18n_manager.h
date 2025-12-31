@@ -115,6 +115,8 @@ private:
      * @param str The string containing {placeholder} patterns
      * @param params Map of placeholder names to values
      * @return String with placeholders replaced
+     * @note The current implementation only supports alphanumeric placeholders (regex: \\{(\\w+)\\}).
+     *       Placeholders with dots or hyphens are not supported.
      */
     static std::string interpolate(const std::string& str, 
                                    const std::map<std::string, std::string>& params);
