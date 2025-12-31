@@ -19,7 +19,7 @@ namespace mb_shell {
  * - Language selection priority: user config > system language > en-US
  * - String interpolation with {placeholder} syntax
  * - Plugin namespace protection for custom translations
- * - RTL direction detection (future-ready)
+ * - RTL direction detection for right-to-left languages
  */
 class i18n_manager {
 public:

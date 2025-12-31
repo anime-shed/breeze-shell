@@ -7,17 +7,13 @@ import * as shell from "mshell"
  * @returns Translated string with placeholders replaced
  */
 export const t = (key: string, params?: Record<string, string>): string => {
-    // Get the translation from the unified i18n system
-    const translation = shell.breeze.get_translation(key);
-
-    // If params provided, perform local interpolation
+    // If params provided, use the C++ interpolation binding
     if (params && Object.keys(params).length > 0) {
-        return translation.replace(/{(\w+)}/g, (match, k) => {
-            return params.hasOwnProperty(k) ? params[k] : match;
-        });
+        return shell.breeze.get_translation_with_params(key, params);
     }
 
-    return translation;
+    // Otherwise use simple translation lookup
+    return shell.breeze.get_translation(key);
 };
 
 /**
