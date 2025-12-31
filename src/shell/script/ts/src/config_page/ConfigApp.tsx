@@ -17,14 +17,14 @@ import PluginStore from "./PluginStore";
 import PluginConfig from "./PluginConfig";
 import { useState, useEffect, ReactNode } from "react";
 
-interface ContextMenuConfig {
+interface ContextMenuSettings {
     theme?: any;
     animation?: any;
     [key: string]: any;
 }
 
 interface GlobalConfig {
-    context_menu?: ContextMenuConfig;
+    context_menu?: ContextMenuSettings;
     debug_console?: boolean;
     plugin_load_order?: any[];
     language?: string;
@@ -33,7 +33,7 @@ interface GlobalConfig {
 
 interface ProviderValues {
     global: { config: GlobalConfig; update: (configPatch: Partial<GlobalConfig>) => void };
-    contextMenu: { config: ContextMenuConfig; update: (newConfig: ContextMenuConfig) => void };
+    contextMenu: { config: ContextMenuSettings; update: (newConfig: ContextMenuSettings) => void };
     debugConsole: { value: boolean; update: (value: boolean) => void };
     pluginLoadOrder: { order: any[]; update: (order: any[]) => void };
     updateData: { updateData: any; setUpdateData: (data: any) => void };
@@ -115,13 +115,13 @@ export const ConfigApp = () => {
     const updateGlobalConfig = (configPatch: Partial<GlobalConfig>) => {
         const newGlobal = { ...config, ...configPatch };
         setConfig(newGlobal);
-        if (Object.prototype.hasOwnProperty.call(configPatch, 'context_menu')) {
+        if ('context_menu' in configPatch) {
             setContextMenuConfig(configPatch.context_menu || {});
         }
-        if (Object.prototype.hasOwnProperty.call(configPatch, 'debug_console')) {
+        if ('debug_console' in configPatch) {
             setDebugConsole(configPatch.debug_console || false);
         }
-        if (Object.prototype.hasOwnProperty.call(configPatch, 'plugin_load_order')) {
+        if ('plugin_load_order' in configPatch) {
             setPluginLoadOrder(configPatch.plugin_load_order || []);
         }
         saveConfig(newGlobal);
