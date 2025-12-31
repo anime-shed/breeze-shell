@@ -62,6 +62,10 @@
   - Run: `xmake run inject` (or appropriate command)
   - Right-click in File Explorer to show context menu
   
+- [x] **4.9** Fix locale file update mechanism in `i18n_manager.cc`
+- [x] **5. Verification**
+  - [x] **5.1** Validate fix with logs and runtime checks
+  - [x] **5.2** Verify interpolation of semantic keys
 - [x] **3.2.2** Verify UI displays translated text
   - Expected: Settings menu shows "Breeze Settings" or "Breeze 设置"
   - NOT: Raw keys like "settings.title"
