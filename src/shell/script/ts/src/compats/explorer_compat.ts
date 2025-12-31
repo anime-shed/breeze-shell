@@ -1,10 +1,11 @@
 import { menu_controller, value_reset } from "mshell"
+import { t } from "../shared/i18n"
 
 export const doExplorerCompat = () => {
     menu_controller.add_menu_listener(ctx => {
         for (const items of ctx.menu.items) {
             const data = items.data()
-            if (data.name_resid === '10580@SHELL32.dll' /* 清空回收站 */ || data.name === '清空回收站') {
+            if (data.name_resid === '10580@SHELL32.dll' /* 清空回收站 */ || data.name === '清空回收站' || data.name === t("explorer.empty_recycle_bin") || data.name === "Empty Recycle Bin") {
                 items.set_data({
                     disabled: false
                 })

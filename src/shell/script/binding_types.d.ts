@@ -1095,7 +1095,7 @@ declare module 'mshell' {
          * @param params - Object mapping placeholder names to values (e.g., { name: "MyPlugin" })
          * @returns The translated string with {placeholders} replaced
          */
-        static get_translation_with_params(key: string, params: Record<string, string>): string
+        static get_translation_with_params(key: string, params: Record<string, string | number | boolean>): string
 
         /**
          * Check if current language is RTL (right-to-left)

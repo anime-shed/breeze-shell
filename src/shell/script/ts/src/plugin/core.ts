@@ -61,7 +61,7 @@ export const plugin = (import_meta, default_config = {}) => {
                     try {
                         config = JSON.parse(shell.fs.read(plugin.config_directory + CONFIG_FILE))
                     } catch (e) {
-                        shell.println(`[${name}] 配置文件解析失败: ${e}`)
+                        shell.println(`[${name}] ${t("error.config_parse_failed", { error: String(e) })}`)
                     }
                 }
             },
@@ -96,7 +96,7 @@ export const plugin = (import_meta, default_config = {}) => {
     config_dir_watch_callbacks.add((path, type) => {
         const relativePath = path.replace(config_directory_main, '');
         if (relativePath === `${nameNoExt}\\${CONFIG_FILE}`) {
-            shell.println(`[${name}] 配置文件变更: ${path} ${type}`)
+            shell.println(`[${name}] ${t("status.config_changed", { path: path, type: type })}`)
             plugin.config.read_config()
             for (const callback of on_reload_callbacks) {
                 callback(config)

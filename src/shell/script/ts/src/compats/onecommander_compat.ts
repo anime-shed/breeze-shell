@@ -1,4 +1,5 @@
 import * as shell from "mshell";
+import { t } from "../shared/i18n";
 export const doOneCommanderCompat = () => {
     shell.menu_controller.add_menu_listener(m => {
         const do_action = (keys: string[]) => () => {
@@ -15,7 +16,8 @@ export const doOneCommanderCompat = () => {
         }
 
         for (const i of m.menu.items) {
-            if (i.data().name === "重命名" || i.data().name === "Rename") {
+            const name = i.data().name;
+            if (name === t("menu.rename") || name === "Rename" || name === "重命名") {
                 i.set_data({
                     action: do_action(['f2'])
                 })
@@ -23,10 +25,9 @@ export const doOneCommanderCompat = () => {
         }
 
         const fill = shell.breeze.is_light_theme() ? "fill=\"#000000\"" : "fill=\"#FFFFFF\"";
-        const zh = shell.breeze.user_language().startsWith('zh');
-        const NEW_NAME = zh ? "新建" : "New";
-        const CREATE_FOLDER_NAME = zh ? "文件夹" : "Folder";
-        const CREATE_FILE_NAME = zh ? "文件" : "File";
+        const NEW_NAME = t("menu.new");
+        const CREATE_FOLDER_NAME = t("menu.folder");
+        const CREATE_FILE_NAME = t("menu.file");
         m.menu.append_item_after({
             name: NEW_NAME,
             submenu(m) {

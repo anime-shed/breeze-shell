@@ -29,17 +29,17 @@ export const makeBreezeConfigMenu = (mainMenu) => {
     const ICON_REPAIR_COLORED = ICON_REPAIR.replaceAll('currentColor', fg_color)
 
     return {
-        name: t("管理 Breeze Shell"),
+        name: t("menu.manage"),
         submenu(sub) {
             sub.append_menu({
-                name: t("插件市场 / 更新本体"),
+                name: t("menu.pluginMarket"),
                 submenu(sub) {
                     const updatePlugins = async (page) => {
                         for (const m of sub.get_items().slice(1))
                             m.remove()
 
                         sub.append_menu({
-                            name: t('加载中...')
+                            name: t('status.loading')
                         })
 
                         if (!cached_plugin_index) {
@@ -57,7 +57,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
 
                         const upd = sub.append_menu({
                             name: exist_old_file ?
-                                `新版本已下载，将于下次重启资源管理器生效` :
+                                t('status.updatePending') :
                                 (current_version === remote_version ?
                                     (current_version + ' (latest)') :
                                     `${current_version} -> ${remote_version}`),
@@ -69,7 +69,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                 const url = PLUGIN_SOURCES[current_source] + data.shell.path
 
                                 upd.set_data({
-                                    name: t('更新中...'),
+                                    name: t('status.updating'),
                                     icon_svg: ICON_REPAIR_COLORED,
                                     disabled: true
                                 })
@@ -77,13 +77,13 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                 const downloadNewShell = () => {
                                     shell.network.download_async(url, shellPath, () => {
                                         upd.set_data({
-                                            name: t('新版本已下载，将于下次重启资源管理器生效'),
+                                            name: t('status.updatePending'),
                                             icon_svg: ICON_CHECKED_COLORED,
                                             disabled: true
                                         })
                                     }, e => {
                                         upd.set_data({
-                                            name: t('更新失败: ') + e,
+                                            name: t('status.updateFailed') + ': ' + e,
                                             icon_svg: ICON_REPAIR_COLORED,
                                             disabled: false
                                         })
@@ -99,7 +99,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                                 downloadNewShell()
                                             } catch (e) {
                                                 upd.set_data({
-                                                    name: t('更新失败: ') + '无法移动当前文件',
+                                                    name: t('status.updateFailed') + ': ' + t('error.cannotMoveFile'),
                                                     icon_svg: ICON_REPAIR_COLORED,
                                                     disabled: false
                                                 })
@@ -113,7 +113,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                     }
                                 } catch (e) {
                                     upd.set_data({
-                                        name: t('更新失败: ') + e,
+                                        name: t('status.updateFailed') + ': ' + e,
                                         icon_svg: ICON_REPAIR_COLORED,
                                         disabled: false
                                     })
@@ -174,7 +174,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                             disabled: true
                                         })
 
-                                        shell.println(t('插件安装成功: ') + plugin.name)
+                                        shell.println(t('status.pluginInstalled') + ': ' + plugin.name)
 
                                         reload_local()
                                     }).catch(e => {
@@ -203,10 +203,10 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                 submenu(sub) {
                                     preview_sub = sub
                                     sub.append_menu({
-                                        name: t('版本: ') + plugin.version
+                                        name: t('plugin.version') + ': ' + plugin.version
                                     })
                                     sub.append_menu({
-                                        name: t('作者: ') + plugin.author
+                                        name: t('plugin.author') + ': ' + plugin.author
                                     })
 
                                     for (const line of splitIntoLines(plugin.description, 40)) {
@@ -222,7 +222,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
 
                     }
                     const source = sub.append_menu({
-                        name: t('当前源: ') + current_source,
+                        name: t('plugin.currentSource') + ': ' + current_source,
                         submenu(sub) {
                             for (const key in PLUGIN_SOURCES) {
                                 sub.append_menu({
@@ -231,7 +231,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                         current_source = key
                                         cached_plugin_index = null
                                         source.set_data({
-                                            name: t('当前源: ') + key
+                                            name: t('plugin.currentSource') + ': ' + key
                                         })
                                         updatePlugins(1)
                                     },
@@ -245,7 +245,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                 }
             })
             sub.append_menu({
-                name: t("Breeze 设置"),
+                name: t("menu.settings"),
                 submenu(sub) {
                     const current_config_path = shell.breeze.data_directory() + '/config.json'
                     const current_config = shell.fs.read(current_config_path)
@@ -537,12 +537,12 @@ export const makeBreezeConfigMenu = (mainMenu) => {
 
                     sub.append_spacer()
 
-                    createBoolToggle(sub, "调试控制台", "debug_console", false);
-                    createBoolToggle(sub, "垂直同步", "context_menu.vsync", true);
-                    createBoolToggle(sub, "忽略自绘菜单", "context_menu.ignore_owner_draw", true);
-                    createBoolToggle(sub, "向上展开时反向排列", "context_menu.reverse_if_open_to_up", true);
-                    createBoolToggle(sub, "尝试使用 Windows 11 圆角", "context_menu.theme.use_dwm_if_available", true);
-                    createBoolToggle(sub, "亚克力背景效果", "context_menu.theme.acrylic", true);
+                    createBoolToggle(sub, t("settings.debugConsole"), "debug_console", false);
+                    createBoolToggle(sub, t("settings.vsync"), "context_menu.vsync", true);
+                    createBoolToggle(sub, t("settings.ignoreOwnerDraw"), "context_menu.ignore_owner_draw", true);
+                    createBoolToggle(sub, t("settings.reverseIfOpenUp"), "context_menu.reverse_if_open_to_up", true);
+                    createBoolToggle(sub, t("settings.useWin11RoundedCorners"), "context_menu.theme.use_dwm_if_available", true);
+                    createBoolToggle(sub, t("settings.acrylicEffect"), "context_menu.theme.acrylic", true);
                 }
             })
 
@@ -582,7 +582,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                         },
                         submenu(sub) {
                             sub.append_menu({
-                                name: t('删除'),
+                                name: t('action.delete'),
                                 action() {
                                     shell.fs.remove(shell.breeze.data_directory() + '/scripts/' + plugin)
                                     m.remove()
