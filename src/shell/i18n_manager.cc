@@ -2,6 +2,7 @@
 #include "config.h"
 #include "utils.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <regex>

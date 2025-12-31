@@ -60,12 +60,13 @@ export const ConfigApp = () => {
         saveConfig(newGlobal);
     };
 
-    const updateGlobalConfig = (newConfig: any) => {
-        setConfig(newConfig);
-        if (newConfig.context_menu) setContextMenuConfig(newConfig.context_menu);
-        if (newConfig.debug_console !== undefined) setDebugConsole(newConfig.debug_console);
-        if (newConfig.plugin_load_order) setPluginLoadOrder(newConfig.plugin_load_order);
-        saveConfig(newConfig);
+    const updateGlobalConfig = (configPatch: any) => {
+        const newGlobal = { ...config, ...configPatch };
+        setConfig(newGlobal);
+        if (configPatch.context_menu) setContextMenuConfig(configPatch.context_menu);
+        if (configPatch.debug_console !== undefined) setDebugConsole(configPatch.debug_console);
+        if (configPatch.plugin_load_order) setPluginLoadOrder(configPatch.plugin_load_order);
+        saveConfig(newGlobal);
     };
 
     return (

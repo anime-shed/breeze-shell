@@ -650,7 +650,6 @@ void network::download_async(std::string url, std::string path,
             fs::write_binary(path,
                              std::vector<uint8_t>(data.begin(), data.end()));
             ctx.enqueueJob([=]() { callback(); });
-            callback();
         } catch (std::exception &e) {
             error_callback(e.what());
         }
