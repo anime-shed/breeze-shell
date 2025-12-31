@@ -1,5 +1,5 @@
-#include "utils.h"
 #define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+#include "utils.h"
 #include <codecvt>
 #include <iostream>
 #include <print>
