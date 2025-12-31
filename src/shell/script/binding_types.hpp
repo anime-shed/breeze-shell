@@ -657,6 +657,14 @@ struct breeze {
     static void register_translations(
         const std::string& lang,
         const std::map<std::string, std::string>& translations);
+
+    // Get available languages
+    // 获取可用语言列表
+    static std::vector<std::string> available_languages();
+
+    // Set language
+    // 设置语言
+    static void set_language(const std::string& lang);
 };
 
 struct win32 {

@@ -1,13 +1,21 @@
 import * as shell from "mshell";
 import { Button, Text, Toggle } from "./components";
-import { ContextMenuContext, DebugConsoleContext } from "./contexts";
+import { ContextMenuContext, DebugConsoleContext, GlobalConfigContext } from "./contexts";
 import { useTranslation, getNestedValue, setNestedValue } from "./utils";
 import { theme_presets, animation_presets } from "./constants";
-import { memo, useContext } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 const ContextMenuConfig = memo(() => {
     const { config, update } = useContext(ContextMenuContext)!;
     const { value: debugConsole, update: updateDebugConsole } = useContext(DebugConsoleContext)!;
+    const { config: globalConfig, update: updateGlobal } = useContext(GlobalConfigContext)!;
     const { t } = useTranslation();
+
+    // Language state
+    const [languages, setLanguages] = useState<string[]>([]);
+    useEffect(() => {
+        setLanguages(shell.breeze.available_languages());
+    }, []);
+    const currentLang = globalConfig?.language || shell.breeze.user_language();
 
     const currentTheme = config?.theme;
     const currentAnimation = config?.theme?.animation;
@@ -56,6 +64,25 @@ const ContextMenuConfig = memo(() => {
     return (
         <flex gap={20} alignItems="stretch" width={500} autoSize={false}>
             <Text fontSize={24}>{t("settings.title")}</Text>
+
+            <flex gap={10}>
+                <Text fontSize={18}>{t("settings.language") || "Language"}</Text>
+                <flex horizontal gap={10}>
+                    {languages.map(lang => (
+                        <Button
+                            key={lang}
+                            selected={lang === currentLang}
+                            onClick={() => {
+                                shell.breeze.set_language(lang);
+                                updateGlobal({ ...globalConfig, language: lang });
+                            }}
+                        >
+                            <Text fontSize={14}>{lang}</Text>
+                        </Button>
+                    ))}
+                </flex>
+            </flex>
+
             <flex />
             <flex gap={10}>
                 <Text fontSize={18}>{t("settings.theme")}</Text>
