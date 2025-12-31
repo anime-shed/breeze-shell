@@ -7,7 +7,8 @@ import {
     PluginLoadOrderContext,
     UpdateDataContext,
     NotificationContext,
-    PluginSourceContext
+    PluginSourceContext,
+    GlobalConfigContext
 } from "./contexts";
 import Sidebar from "./Sidebar";
 import ContextMenuConfig from "./ContextMenuConfig";
@@ -59,43 +60,53 @@ export const ConfigApp = () => {
         saveConfig(newGlobal);
     };
 
+    const updateGlobalConfig = (newConfig: any) => {
+        setConfig(newConfig);
+        if (newConfig.context_menu) setContextMenuConfig(newConfig.context_menu);
+        if (newConfig.debug_console !== undefined) setDebugConsole(newConfig.debug_console);
+        if (newConfig.plugin_load_order) setPluginLoadOrder(newConfig.plugin_load_order);
+        saveConfig(newConfig);
+    };
+
     return (
-        <ContextMenuContext.Provider value={{ config: contextMenuConfig, update: updateContextMenu }}>
-            <DebugConsoleContext.Provider value={{ value: debugConsole, update: updateDebugConsole }}>
-                <PluginLoadOrderContext.Provider value={{ order: pluginLoadOrder, update: updatePluginLoadOrder }}>
-                    <UpdateDataContext.Provider value={{ updateData, setUpdateData }}>
-                        <NotificationContext.Provider value={{
-                            errorMessage,
-                            setErrorMessage,
-                            loadingMessage,
-                            setLoadingMessage
-                        }}>
-                            <PluginSourceContext.Provider value={{
-                                currentPluginSource,
-                                setCurrentPluginSource,
-                                cachedPluginIndex,
-                                setCachedPluginIndex
+        <GlobalConfigContext.Provider value={{ config, update: updateGlobalConfig }}>
+            <ContextMenuContext.Provider value={{ config: contextMenuConfig, update: updateContextMenu }}>
+                <DebugConsoleContext.Provider value={{ value: debugConsole, update: updateDebugConsole }}>
+                    <PluginLoadOrderContext.Provider value={{ order: pluginLoadOrder, update: updatePluginLoadOrder }}>
+                        <UpdateDataContext.Provider value={{ updateData, setUpdateData }}>
+                            <NotificationContext.Provider value={{
+                                errorMessage,
+                                setErrorMessage,
+                                loadingMessage,
+                                setLoadingMessage
                             }}>
-                                <flex horizontal width={WINDOW_WIDTH} height={WINDOW_HEIGHT} autoSize={false} gap={10}>
-                                    <Sidebar
-                                        activePage={activePage}
-                                        setActivePage={setActivePage}
-                                        sidebarWidth={SIDEBAR_WIDTH}
-                                        windowHeight={WINDOW_HEIGHT}
-                                    />
-                                    <flex padding={20}>
-                                        {activePage === 'context-menu' && <ContextMenuConfig />}
-                                        {activePage === 'update' && <UpdatePage />}
-                                        {activePage === 'plugin-store' && <PluginStore />}
-                                        {activePage === 'plugin-config' && <PluginConfig />}
+                                <PluginSourceContext.Provider value={{
+                                    currentPluginSource,
+                                    setCurrentPluginSource,
+                                    cachedPluginIndex,
+                                    setCachedPluginIndex
+                                }}>
+                                    <flex horizontal width={WINDOW_WIDTH} height={WINDOW_HEIGHT} autoSize={false} gap={10}>
+                                        <Sidebar
+                                            activePage={activePage}
+                                            setActivePage={setActivePage}
+                                            sidebarWidth={SIDEBAR_WIDTH}
+                                            windowHeight={WINDOW_HEIGHT}
+                                        />
+                                        <flex padding={20}>
+                                            {activePage === 'context-menu' && <ContextMenuConfig />}
+                                            {activePage === 'update' && <UpdatePage />}
+                                            {activePage === 'plugin-store' && <PluginStore />}
+                                            {activePage === 'plugin-config' && <PluginConfig />}
+                                        </flex>
                                     </flex>
-                                </flex>
-                            </PluginSourceContext.Provider>
-                        </NotificationContext.Provider>
-                    </UpdateDataContext.Provider>
-                </PluginLoadOrderContext.Provider>
-            </DebugConsoleContext.Provider>
-        </ContextMenuContext.Provider>
+                                </PluginSourceContext.Provider>
+                            </NotificationContext.Provider>
+                        </UpdateDataContext.Provider>
+                    </PluginLoadOrderContext.Provider>
+                </DebugConsoleContext.Provider>
+            </ContextMenuContext.Provider>
+        </GlobalConfigContext.Provider>
     );
 };
 

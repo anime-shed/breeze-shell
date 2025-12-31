@@ -1212,6 +1212,8 @@ template<> struct js_bind<mb_shell::js::breeze> {
                 .static_fun<&mb_shell::js::breeze::get_translation_with_params>("get_translation_with_params")
                 .static_fun<&mb_shell::js::breeze::is_rtl>("is_rtl")
                 .static_fun<&mb_shell::js::breeze::register_translations>("register_translations")
+                .static_fun<&mb_shell::js::breeze::available_languages>("available_languages")
+                .static_fun<&mb_shell::js::breeze::set_language>("set_language")
             ;
     }
 };

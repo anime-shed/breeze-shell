@@ -1111,6 +1111,20 @@ declare module 'mshell' {
          * @param translations - Object mapping keys to translated strings
          */
         static register_translations(lang: string, translations: Record<string, string>): void
+
+        /**
+         * Get available languages
+         * 获取可用语言列表
+         * @returns Array of language codes
+         */
+        static available_languages(): Array<string>
+
+        /**
+         * Set language
+         * 设置语言
+         * @param lang - Language code (e.g., "en-US", "zh-CN")
+         */
+        static set_language(lang: string): void
     }
     export class win32 {
         /**

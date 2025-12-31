@@ -227,18 +227,17 @@ void i18n_manager::load_plugin_locales() {
                 std::string json_str((std::istreambuf_iterator<char>(file)),
                                       std::istreambuf_iterator<char>());
                 
-                // Parse plugin locale JSON
-                std::regex kv_regex(R"kv("([^"]+)"\s*:\s*"([^"]*)")kv");
-                std::smatch match;
-                std::string::const_iterator search_start(json_str.cbegin());
+                auto result = rfl::json::read<std::map<std::string, std::string>>(json_str);
                 
-                while (std::regex_search(search_start, json_str.cend(), match, kv_regex)) {
-                    std::string key = match[1].str();
-                    std::string value = match[2].str();
-                    
+                if (!result) {
+                    std::cerr << "Failed to parse plugin locale file " << lang_file.path() 
+                              << ": " << result.error().what() << std::endl;
+                    continue;
+                }
+                
+                for (const auto& [key, value] : result.value()) {
                     // Skip metadata keys
                     if (key.starts_with("$metadata")) {
-                        search_start = match.suffix().first;
                         continue;
                     }
                     
@@ -246,17 +245,10 @@ void i18n_manager::load_plugin_locales() {
                     if (core_keys_.find(key) != core_keys_.end()) {
                         std::cerr << "Warning: Plugin " << plugin_name 
                                   << " attempted to override core key: " << key << std::endl;
-                        search_start = match.suffix().first;
                         continue;
                     }
                     
-                    // Handle escaped characters
-                    std::regex escape_regex(R"(\\(.))");
-                    value = std::regex_replace(value, escape_regex, "$1");
-                    
                     plugin_translations_[lang][key] = value;
-                    
-                    search_start = match.suffix().first;
                 }
             }
         }
