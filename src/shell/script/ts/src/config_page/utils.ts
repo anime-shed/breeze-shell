@@ -34,48 +34,47 @@ export const setNestedValue = (obj: any, path: string, value: any) => {
     target[last] = value;
 };
 
-// Translation helper
+// Translation helper using unified i18n system
 export const useTranslation = () => {
     const currentLang = shell.breeze.user_language() === 'zh-CN' ? 'zh-CN' : 'en-US';
-    const t = (key: string) => {
-        const languages = {
-            'zh-CN': {
-                "管理 Breeze Shell": "管理 Breeze Shell",
-                "插件市场": "插件市场",
-                "加载中...": "加载中...",
-                "更新中...": "更新中...",
-                "安装中...": "安装中...",
-                "新版本已下载，将于下次重启资源管理器生效": "新版本已下载，将于下次重启资源管理器生效",
-                "更新失败: ": "更新失败: ",
-                "插件安装成功: ": "插件安装成功: ",
-                "版本: ": "版本: ",
-                "作者: ": "作者: ",
-                "删除": "删除",
-                "Breeze 设置": "Breeze 设置",
-                "优先加载插件": "优先加载插件",
-                "调试控制台": "调试控制台",
-                "垂直同步": "垂直同步",
-                "忽略自绘菜单": "忽略自绘菜单",
-                "向上展开时反向排列": "向上展开时反向排列",
-                "尝试使用 Windows 11 圆角": "尝试使用 Windows 11 圆角",
-                "亚克力背景效果": "亚克力背景效果",
-                "主题": "主题",
-                "动画": "动画",
-                "当前源: ": "当前源: ",
-                "插件": "插件",
-                "插件源": "插件源",
-                "换源": "换源",
-                "请稍候": "请稍候",
-                "切换源中...": "切换源中...",
-                "加载失败": "加载失败",
-                "网络错误": "网络错误",
-                "切换源成功": "切换源成功"
-            },
-            'en-US': {}
-        };
-        return languages[currentLang][key] || key;
+
+    /**
+     * Perform placeholder substitution on a string
+     * @param str The string containing {placeholder} patterns
+     * @param params Map of placeholder names to values
+     * @returns String with placeholders replaced
+     */
+    const interpolate = (str: string, params: Record<string, string>): string => {
+        return str.replace(/{(\w+)}/g, (match, key) => {
+            return params.hasOwnProperty(key) ? params[key] : match;
+        });
     };
-    return { t, currentLang };
+
+    /**
+     * Get a translated string by key
+     * @param key The translation key (e.g., "settings.title")
+     * @param params Optional parameters for placeholder substitution
+     */
+    const t = (key: string, params?: Record<string, string>): string => {
+        // Get the translation from the unified i18n system
+        const translation = shell.breeze.get_translation(key);
+
+        // If params provided, perform local interpolation
+        if (params && Object.keys(params).length > 0) {
+            return interpolate(translation, params);
+        }
+
+        return translation;
+    };
+
+    /**
+     * Check if current language is RTL
+     */
+    const isRTL = (): boolean => {
+        return shell.breeze.is_rtl();
+    };
+
+    return { t, currentLang, isRTL };
 };
 
 // Theme preset utilities

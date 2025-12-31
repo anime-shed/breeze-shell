@@ -21,8 +21,18 @@ let current_source = 'Enlysure'
 
 export const makeBreezeConfigMenu = (mainMenu) => {
     const currentLang = shell.breeze.user_language() === 'zh-CN' ? 'zh-CN' : 'en-US'
-    const t = (key: string) => {
-        return languages[currentLang][key] || key
+    const t = (key: string, params?: Record<string, string>): string => {
+        // Get the translation from the unified i18n system
+        const translation = shell.breeze.get_translation(key);
+
+        // If params provided, perform local interpolation
+        if (params && Object.keys(params).length > 0) {
+            return translation.replace(/{(\w+)}/g, (match, k) => {
+                return params.hasOwnProperty(k) ? params[k] : match;
+            });
+        }
+
+        return translation;
     }
 
     const fg_color = shell.breeze.is_light_theme() ? 'black' : 'white'

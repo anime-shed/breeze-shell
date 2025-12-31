@@ -122,6 +122,9 @@ struct config {
     bool res_string_loader_use_hook = false;
     bool avoid_resize_ui = false;
     std::vector<std::string> plugin_load_order = {};
+    
+    // Language preference override (uses system language if nullopt)
+    std::optional<std::string> language;
 
     std::string $schema;
     static std::unique_ptr<config> current;

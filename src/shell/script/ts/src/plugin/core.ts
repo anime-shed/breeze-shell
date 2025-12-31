@@ -28,11 +28,40 @@ export const plugin = (import_meta, default_config = {}) => {
 
     const plugin = {
         i18n: {
-            define: (lang, data) => {
-                languages[lang] = data
+            /**
+             * Define translations for a language
+             * @param lang Language code (e.g., "en-US", "zh-CN")
+             * @param data Object mapping keys to translations
+             */
+            define: (lang: string, data: Record<string, string>) => {
+                // Register with the unified i18n system
+                shell.breeze.register_translations(lang, data);
+                // Also keep local copy for backward compatibility
+                languages[lang] = data;
             },
-            t: (key) => {
-                return languages[shell.breeze.user_language()][key] || key
+            /**
+             * Get a translated string
+             * @param key Translation key
+             * @param params Optional interpolation parameters
+             */
+            t: (key: string, params?: Record<string, string>): string => {
+                // Get the translation from the unified i18n system
+                const translation = shell.breeze.get_translation(key);
+
+                // If params provided, perform local interpolation
+                if (params && Object.keys(params).length > 0) {
+                    return translation.replace(/{(\w+)}/g, (match, k) => {
+                        return params.hasOwnProperty(k) ? params[k] : match;
+                    });
+                }
+
+                return translation;
+            },
+            /**
+             * Check if current language is RTL
+             */
+            isRTL: (): boolean => {
+                return shell.breeze.is_rtl();
             }
         },
         set_on_menu: (callback: (m: shell.menu_controller) => void) => {

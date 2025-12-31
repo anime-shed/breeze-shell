@@ -25,6 +25,7 @@
 
 #include "script.h"
 #include "shell/utils.h"
+#include "shell/i18n_manager.h"
 #include "winhttp.h"
 
 #include <shellapi.h>
@@ -689,6 +690,27 @@ std::optional<std::string> win32::env(std::string name) {
 std::string breeze::hash() { return BREEZE_GIT_COMMIT_HASH; }
 std::string breeze::branch() { return BREEZE_GIT_BRANCH_NAME; }
 std::string breeze::build_date() { return BREEZE_BUILD_DATE_TIME; }
+
+// i18n API implementations
+std::string breeze::get_translation(const std::string& key) {
+    return mb_shell::i18n_manager::instance().get(key);
+}
+
+std::string breeze::get_translation_with_params(
+    const std::string& key,
+    const std::map<std::string, std::string>& params) {
+    return mb_shell::i18n_manager::instance().get(key, params);
+}
+
+bool breeze::is_rtl() {
+    return mb_shell::i18n_manager::instance().is_rtl();
+}
+
+void breeze::register_translations(
+    const std::string& lang,
+    const std::map<std::string, std::string>& translations) {
+    mb_shell::i18n_manager::instance().register_translations(lang, translations);
+}
 std::vector<std::shared_ptr<mb_shell::js::menu_item_controller>>
 menu_item_parent_item_controller::children() {
     if (!valid())

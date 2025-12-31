@@ -11,6 +11,7 @@
 #include "rfl/json.hpp"
 
 #include "utils.h"
+#include "i18n_manager.h"
 #include "windows.h"
 
 namespace rfl {
@@ -101,6 +102,14 @@ void config::read_config() {
         ShowWindow(GetConsoleWindow(), SW_SHOW);
     } else {
         ShowWindow(GetConsoleWindow(), SW_HIDE);
+    }
+    
+    // Initialize/update i18n manager with config language preference
+    auto& i18n = i18n_manager::instance();
+    if (config::current->language) {
+        i18n.set_language(*config::current->language);
+    } else {
+        i18n.reload();
     }
 }
 

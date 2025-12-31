@@ -9,6 +9,7 @@
 #include <unordered_set>
 #include <variant>
 #include <vector>
+#include <map>
 
 #include "binding_types_breeze_ui.h"
 
@@ -635,6 +636,27 @@ struct breeze {
     static bool should_show_settings_button();
     static std::string current_process_name();
     static std::string current_process_path();
+    
+    // i18n API
+    // Get a translated string by key
+    // 获取翻译字符串
+    static std::string get_translation(const std::string& key);
+    
+    // Get a translated string with placeholder substitution
+    // 获取带占位符替换的翻译字符串
+    static std::string get_translation_with_params(
+        const std::string& key, 
+        const std::map<std::string, std::string>& params);
+    
+    // Check if current language is RTL
+    // 检查当前语言是否为从右到左
+    static bool is_rtl();
+    
+    // Register plugin translations
+    // 注册插件翻译
+    static void register_translations(
+        const std::string& lang,
+        const std::map<std::string, std::string>& translations);
 };
 
 struct win32 {

@@ -1143,6 +1143,11 @@ template<> struct js_bind<mb_shell::js::breeze> {
                 .static_fun<&mb_shell::js::breeze::should_show_settings_button>("should_show_settings_button")
                 .static_fun<&mb_shell::js::breeze::current_process_name>("current_process_name")
                 .static_fun<&mb_shell::js::breeze::current_process_path>("current_process_path")
+                // i18n API
+                .static_fun<&mb_shell::js::breeze::get_translation>("get_translation")
+                .static_fun<&mb_shell::js::breeze::get_translation_with_params>("get_translation_with_params")
+                .static_fun<&mb_shell::js::breeze::is_rtl>("is_rtl")
+                .static_fun<&mb_shell::js::breeze::register_translations>("register_translations")
             ;
     }
 };
