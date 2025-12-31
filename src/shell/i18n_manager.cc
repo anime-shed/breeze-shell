@@ -276,7 +276,8 @@ std::string i18n_manager::interpolate(const std::string& str,
     }
     
     std::string result = str;
-    std::regex placeholder_regex(R"(\{(\w+)\})");
+    // Support alphanumeric, dots, and hyphens in placeholders (e.g., {user.name}, {my-key})
+    std::regex placeholder_regex(R"(\{([\w.-]+)\})");
     
     std::smatch match;
     std::string::const_iterator search_start(result.cbegin());
