@@ -5,6 +5,70 @@
 #include "binding_types.h"
 #include "quickjspp.hpp"
 
+namespace qjs {
+    template <typename Value>
+    struct js_traits<std::map<std::string, Value>> {
+        static std::map<std::string, Value> unwrap(JSContext *ctx, JSValueConst v) {
+            if (!JS_IsObject(v))
+                throw exception{ctx};
+            
+            std::map<std::string, Value> result;
+            JSPropertyEnum *tab;
+            uint32_t len;
+            
+            if (JS_GetOwnPropertyNames(ctx, &tab, &len, v, JS_GPN_STRING_MASK | JS_GPN_SYMBOL_MASK | JS_GPN_ENUM_ONLY) < 0)
+                throw exception{ctx};
+                
+            for (uint32_t i = 0; i < len; i++) {
+                const char* keyStr = JS_AtomToCString(ctx, tab[i].atom);
+                if (!keyStr) {
+                    JS_FreePropertyEnum(ctx, tab, len);
+                    throw exception{ctx};
+                }
+                std::string key(keyStr);
+                JS_FreeCString(ctx, keyStr);
+                
+                JSValue val = JS_GetProperty(ctx, v, tab[i].atom);
+                if (JS_IsException(val)) {
+                    JS_FreePropertyEnum(ctx, tab, len);
+                    throw exception{ctx};
+                }
+                
+                try {
+                    result.emplace(std::move(key), js_traits<Value>::unwrap(ctx, val));
+                } catch (...) {
+                    JS_FreeValue(ctx, val);
+                    JS_FreePropertyEnum(ctx, tab, len);
+                    throw;
+                }
+                JS_FreeValue(ctx, val);
+            }
+            
+            JS_FreePropertyEnum(ctx, tab, len);
+            return result;
+        }
+
+        static JSValue wrap(JSContext *ctx, const std::map<std::string, Value>& map) noexcept {
+            JSValue obj = JS_NewObject(ctx);
+            if (JS_IsException(obj)) return obj;
+            
+            for (const auto& [key, value] : map) {
+                JSValue val = js_traits<Value>::wrap(ctx, value);
+                if (JS_IsException(val)) {
+                    JS_FreeValue(ctx, obj);
+                    return val;
+                }
+                
+                if (JS_SetPropertyStr(ctx, obj, key.c_str(), val) < 0) {
+                    JS_FreeValue(ctx, obj);
+                    return JS_EXCEPTION;
+                }
+            }
+            return obj;
+        }
+    };
+}
+
 template <typename T>
 struct js_bind {
     static void bind(qjs::Context::Module &mod) {}
@@ -1143,6 +1207,13 @@ template<> struct js_bind<mb_shell::js::breeze> {
                 .static_fun<&mb_shell::js::breeze::should_show_settings_button>("should_show_settings_button")
                 .static_fun<&mb_shell::js::breeze::current_process_name>("current_process_name")
                 .static_fun<&mb_shell::js::breeze::current_process_path>("current_process_path")
+                // i18n API
+                .static_fun<&mb_shell::js::breeze::get_translation>("get_translation")
+                .static_fun<&mb_shell::js::breeze::get_translation_with_params>("get_translation_with_params")
+                .static_fun<&mb_shell::js::breeze::is_rtl>("is_rtl")
+                .static_fun<&mb_shell::js::breeze::register_translations>("register_translations")
+                .static_fun<&mb_shell::js::breeze::available_languages>("available_languages")
+                .static_fun<&mb_shell::js::breeze::set_language>("set_language")
             ;
     }
 };

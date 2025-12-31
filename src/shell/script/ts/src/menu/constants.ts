@@ -1,22 +1,15 @@
 import * as shell from "mshell"
 
+// Legacy languages object - kept for backward compatibility
+// New code should use shell.breeze.get_translation() instead
 export const languages = {
-    'zh-CN': {
-    },
-    'en-US': {
-        '管理 Breeze Shell': 'Manage Breeze Shell',
-        '插件市场 / 更新本体': 'Plugin Market / Update Shell',
-        '加载中...': 'Loading...',
-        '更新中...': 'Updating...',
-        '新版本已下载，将于下次重启资源管理器生效': 'New version downloaded, will take effect next time the file manager is restarted',
-        '更新失败: ': 'Update failed: ',
-        '插件安装成功: ': 'Plugin installed: ',
-        '当前源: ': 'Current source: ',
-        '删除': 'Delete',
-        '版本: ': 'Version: ',
-        '作者: ': 'Author: '
-    }
-}
+    'zh-CN': {},
+    'en-US': {}
+};
+
+import { t } from "../shared/i18n"
+
+export { t }
 
 export const ICON_EMPTY = new shell.value_reset()
 export const ICON_CHECKED = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 12 12"><path fill="currentColor" d="M9.765 3.205a.75.75 0 0 1 .03 1.06l-4.25 4.5a.75.75 0 0 1-1.075.015L2.22 6.53a.75.75 0 0 1 1.06-1.06l1.705 1.704l3.72-3.939a.75.75 0 0 1 1.06-.03"/></svg>`

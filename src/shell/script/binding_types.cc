@@ -25,6 +25,7 @@
 
 #include "script.h"
 #include "shell/utils.h"
+#include "shell/i18n_manager.h"
 #include "winhttp.h"
 
 #include <shellapi.h>
@@ -649,7 +650,6 @@ void network::download_async(std::string url, std::string path,
             fs::write_binary(path,
                              std::vector<uint8_t>(data.begin(), data.end()));
             ctx.enqueueJob([=]() { callback(); });
-            callback();
         } catch (std::exception &e) {
             error_callback(e.what());
         }
@@ -663,24 +663,7 @@ size_t win32::load_library(std::string path) {
         LoadLibraryW(utf8_to_wstring(path).c_str()));
 }
 std::string breeze::user_language() {
-    wchar_t buffer[256];
-
-    /*
-    BOOL GetUserPreferredUILanguages(
-    [in]            DWORD   dwFlags,
-    [out]           PULONG  pulNumLanguages,
-    [out, optional] PZZWSTR pwszLanguagesBuffer,
-    [in, out]       PULONG  pcchLanguagesBuffer
-  );
-  */
-
-    ULONG num_langs = 256;
-    if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &num_langs, buffer,
-                                    &num_langs)) {
-        return wstring_to_utf8(buffer);
-    }
-
-    return "en-US";
+    return mb_shell::i18n_manager::instance().current_language();
 }
 std::optional<std::string> win32::env(std::string name) {
     return mb_shell::env(name);
@@ -689,6 +672,35 @@ std::optional<std::string> win32::env(std::string name) {
 std::string breeze::hash() { return BREEZE_GIT_COMMIT_HASH; }
 std::string breeze::branch() { return BREEZE_GIT_BRANCH_NAME; }
 std::string breeze::build_date() { return BREEZE_BUILD_DATE_TIME; }
+
+// i18n API implementations
+std::string breeze::get_translation(const std::string& key) {
+    return mb_shell::i18n_manager::instance().get(key);
+}
+
+std::string breeze::get_translation_with_params(
+    const std::string& key,
+    const std::map<std::string, std::string>& params) {
+    return mb_shell::i18n_manager::instance().get(key, params);
+}
+
+bool breeze::is_rtl() {
+    return mb_shell::i18n_manager::instance().is_rtl();
+}
+
+void breeze::register_translations(
+    const std::string& lang,
+    const std::map<std::string, std::string>& translations) {
+    mb_shell::i18n_manager::instance().register_translations(lang, translations);
+}
+
+std::vector<std::string> breeze::available_languages() {
+    return mb_shell::i18n_manager::instance().available_languages();
+}
+
+void breeze::set_language(const std::string& lang) {
+    mb_shell::i18n_manager::instance().set_language(lang);
+}
 std::vector<std::shared_ptr<mb_shell::js::menu_item_controller>>
 menu_item_parent_item_controller::children() {
     if (!valid())

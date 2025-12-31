@@ -1,5 +1,6 @@
 import * as shell from "mshell"
 import { getNestedValue, setNestedValue } from "../utils/object"
+import { t, isRTL } from "../shared/i18n"
 
 export const config_directory_main = shell.breeze.data_directory() + '/config/';
 
@@ -28,12 +29,27 @@ export const plugin = (import_meta, default_config = {}) => {
 
     const plugin = {
         i18n: {
-            define: (lang, data) => {
-                languages[lang] = data
+            /**
+             * Define translations for a language
+             * @param lang Language code (e.g., "en-US", "zh-CN")
+             * @param data Object mapping keys to translations
+             */
+            define: (lang: string, data: Record<string, string>) => {
+                // Register with the unified i18n system
+                shell.breeze.register_translations(lang, data);
+                // Also keep local copy for backward compatibility
+                languages[lang] = data;
             },
-            t: (key) => {
-                return languages[shell.breeze.user_language()][key] || key
-            }
+            /**
+             * Get a translated string
+             * @param key Translation key
+             * @param params Optional interpolation parameters
+             */
+            t: t,
+            /**
+             * Check if current language is RTL
+             */
+            isRTL: isRTL
         },
         set_on_menu: (callback: (m: shell.menu_controller) => void) => {
             globalThis.on_plugin_menu[nameNoExt] = callback
@@ -45,7 +61,7 @@ export const plugin = (import_meta, default_config = {}) => {
                     try {
                         config = JSON.parse(shell.fs.read(plugin.config_directory + CONFIG_FILE))
                     } catch (e) {
-                        shell.println(`[${name}] 配置文件解析失败: ${e}`)
+                        shell.println(`[${name}] ${t("error.config_parse_failed", { error: String(e) })}`)
                     }
                 }
             },
@@ -80,7 +96,7 @@ export const plugin = (import_meta, default_config = {}) => {
     config_dir_watch_callbacks.add((path, type) => {
         const relativePath = path.replace(config_directory_main, '');
         if (relativePath === `${nameNoExt}\\${CONFIG_FILE}`) {
-            shell.println(`[${name}] 配置文件变更: ${path} ${type}`)
+            shell.println(`[${name}] ${t("status.config_changed", { path: path, type: type })}`)
             plugin.config.read_config()
             for (const callback of on_reload_callbacks) {
                 callback(config)

@@ -19,7 +19,7 @@ includes("dependencies/breeze-ui.lua")
 set_runtimes("MT")
 add_requires("breeze-glfw", {alias = "glfw"})
 add_requires("blook dd51b45ad765274a0b5394b70d9982c948e26c74", "glad",
-    "reflect-cpp", "wintoast v1.3.1", "cpptrace v0.8.3", "breeze-ui")
+    "reflect-cpp", "wintoast v1.3.1", "cpptrace v0.8.3", "breeze-ui", "yyjson")
 
 if has_config("asan") then
     add_defines("_DISABLE_VECTOR_ANNOTATION", "_DISABLE_STRING_ANNOTATION", "_ASAN_")
@@ -59,11 +59,12 @@ target("shell")
     add_includedirs("src/shell/script/quickjs")
 
     add_defines("NOMINMAX", "WIN32_LEAN_AND_MEAN")
-    add_packages("blook", "reflect-cpp", "wintoast", "cpptrace", "yalantinglibs", "breeze-ui")
+    add_packages("blook", "reflect-cpp", "wintoast", "cpptrace", "yalantinglibs", "breeze-ui", "yyjson")
     add_syslinks("oleacc", "ole32", "oleaut32", "uuid", "comctl32", "comdlg32", "gdi32", "user32", "shell32", "kernel32", "advapi32", "psapi", "Winhttp", "dbghelp")
     add_rules("utils.bin2c", {
-        extensions = {".js"}
+        extensions = {".js", ".json"}
     })
+    add_files("resources/locales/en-US.json", "resources/locales/zh-CN.json")
     set_version(version)
     set_configdir("src/shell")
     add_configfiles("src/shell/build_info.h.in")

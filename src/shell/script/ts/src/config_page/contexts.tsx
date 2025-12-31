@@ -1,5 +1,8 @@
 import { createContext } from "react";
 
+// Context for global configuration
+export const GlobalConfigContext = createContext<{ config: any; update: (c: any) => void } | null>(null);
+
 // Context for context menu configuration
 export const ContextMenuContext = createContext<{ config: any; update: (c: any) => void } | null>(null);
 
