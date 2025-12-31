@@ -46,6 +46,10 @@ jobs:
         xmake b --yes --verbose inject
         xmake b --yes --verbose shell
 
+    - name: Copy Assets
+      run: |
+        Copy-Item -Path "resources/locales" -Destination "./build/windows/x64/releasedbg/locales" -Recurse -Force
+
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4.6.0
       with:
