@@ -1,6 +1,7 @@
 #include "i18n_manager.h"
 #include "config.h"
 #include "utils.h"
+#include "logger.h"
 
 #include <filesystem>
 #include <fstream>
@@ -26,17 +27,22 @@ const unsigned char g_zh_CN_json[] = {
 };
 
 void ensure_file(const std::filesystem::path& path, const unsigned char* data, size_t size) {
-    if (!std::filesystem::exists(path)) {
-        try {
-            std::filesystem::create_directories(path.parent_path());
-            std::ofstream f(path, std::ios::binary);
-            if (f) {
-                f.write(reinterpret_cast<const char*>(data), size);
-                std::cout << "Extracted default locale: " << path << std::endl;
-            }
-        } catch (const std::exception& e) {
-            std::cerr << "Failed to extract locale " << path << ": " << e.what() << std::endl;
+    // Check for and strip trailing null terminator if present
+    size_t write_size = size;
+    if (write_size > 0 && data[write_size - 1] == '\0') {
+        write_size--;
+    }
+
+    // Always overwrite embedded locale files to ensure updates propagate correctly
+    try {
+        std::filesystem::create_directories(path.parent_path());
+        std::ofstream f(path, std::ios::binary | std::ios::trunc);
+        if (f) {
+            f.write(reinterpret_cast<const char*>(data), write_size);
+            dbgout("Extracted/updated locale: {} (size: {})", path.string(), write_size);
         }
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to extract locale " << path << ": " << e.what() << std::endl;
     }
 }
 }
@@ -102,21 +108,26 @@ void i18n_manager::set_language(const std::string& lang) {
         return;
     }
     
-    current_lang_ = lang;
-    
     // Check if locale is loaded, if not try to load it
+    bool loaded = true;
     if (translations_.find(lang) == translations_.end()) {
-        load_locale(lang);
+        loaded = load_locale(lang);
     }
     
-    // Update RTL status from metadata
-    is_rtl_ = false; // Default to LTR
-    auto lang_it = translations_.find(current_lang_);
-    if (lang_it != translations_.end()) {
-        auto meta_it = lang_it->second.find("$metadata.direction");
-        if (meta_it != lang_it->second.end() && meta_it->second == "rtl") {
-            is_rtl_ = true;
+    if (loaded) {
+        current_lang_ = lang;
+        
+        // Update RTL status from metadata
+        is_rtl_ = false; // Default to LTR
+        auto lang_it = translations_.find(current_lang_);
+        if (lang_it != translations_.end()) {
+            auto meta_it = lang_it->second.find("$metadata.direction");
+            if (meta_it != lang_it->second.end() && meta_it->second == "rtl") {
+                is_rtl_ = true;
+            }
         }
+    } else {
+        std::cerr << "Failed to load locale " << lang << ", keeping " << current_lang_ << std::endl;
     }
 }
 
@@ -175,6 +186,7 @@ void i18n_manager::reload() {
     }
     
     current_lang_ = target_lang;
+    dbgout("Current language set to: {}", current_lang_);
     
     // Load plugin locales
     load_plugin_locales();
@@ -191,10 +203,42 @@ void i18n_manager::reload() {
 }
 
 bool i18n_manager::load_locale(const std::string& lang) {
-    auto locale_path = config::data_directory() / "locales" / (lang + ".json");
+    // Security validation: Validate language code format
+    static const std::regex kLangRegex("^[A-Za-z]{2,3}(-[A-Za-z]{2,4})?$");
+    if (!std::regex_match(lang, kLangRegex) || 
+        lang.find("..") != std::string::npos || 
+        lang.find('/') != std::string::npos || 
+        lang.find('\\') != std::string::npos) {
+        std::cerr << "Invalid language code or path traversal attempt: " << lang << std::endl;
+        return false;
+    }
+
+    auto locales_dir = config::data_directory() / "locales";
+    auto locale_path = locales_dir / (lang + ".json");
     
     if (!std::filesystem::exists(locale_path)) {
-        std::cerr << "Locale file not found: " << locale_path << std::endl;
+        dbgout("Locale file not found: {}", locale_path.string());
+        return false;
+    }
+
+    // Path Traversal Protection: Verify resolved path is inside locales directory
+    std::error_code ec;
+    auto canonical_path = std::filesystem::canonical(locale_path, ec);
+    if (ec) {
+        std::cerr << "Failed to canonicalize path: " << locale_path << " - " << ec.message() << std::endl;
+        return false;
+    }
+
+    auto canonical_base = std::filesystem::canonical(locales_dir, ec);
+    if (ec) {
+        std::cerr << "Failed to canonicalize base directory: " << locales_dir << std::endl;
+        return false;
+    }
+
+    // Check if the file path starts with the base directory path
+    if (canonical_path.string().find(canonical_base.string()) != 0) {
+        std::cerr << "Security violation: Attempted to load locale outside allowed directory: " 
+                  << canonical_path << std::endl;
         return false;
     }
     
@@ -250,6 +294,8 @@ bool i18n_manager::load_locale(const std::string& lang) {
         }
     }
     
+    dbgout("Loaded locale: {} ({} translations)", lang, lang_translations.size());
+    // Ensure document is freed before returning
     yyjson_doc_free(doc);
     return true;
 }
@@ -334,11 +380,19 @@ void i18n_manager::load_plugin_locales() {
 }
 
 std::string i18n_manager::get_system_language() {
-    wchar_t buffer[256];
-    ULONG num_langs = 256;
+    ULONG num_langs = 0;
+    ULONG buffer_size = 0;
     
-    if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &num_langs, buffer, &num_langs)) {
-        return wstring_to_utf8(buffer);
+    // First call to determine required buffer size
+    if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &num_langs, nullptr, &buffer_size)) {
+        std::vector<wchar_t> buffer(buffer_size);
+        // Second call to retrieve languages
+        if (GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &num_langs, buffer.data(), &buffer_size)) {
+            // buffer contains null-separated strings; take the first one if available
+            if (num_langs > 0 && buffer_size > 0) {
+                return wstring_to_utf8(buffer.data());
+            }
+        }
     }
     
     return "en-US";
