@@ -5,6 +5,7 @@ import { splitIntoLines } from "../utils/string"
 import { getNestedValue, setNestedValue } from "../utils/object"
 import { config_dir_watch_callbacks } from "../plugin/core"
 import { languages, ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
+import { t, currentLanguage } from "../shared/i18n"
 
 let cached_plugin_index: any = null
 
@@ -20,20 +21,7 @@ if (shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll')) {
 let current_source = 'Enlysure'
 
 export const makeBreezeConfigMenu = (mainMenu) => {
-    const currentLang = shell.breeze.user_language() === 'zh-CN' ? 'zh-CN' : 'en-US'
-    const t = (key: string, params?: Record<string, string>): string => {
-        // Get the translation from the unified i18n system
-        const translation = shell.breeze.get_translation(key);
-
-        // If params provided, perform local interpolation
-        if (params && Object.keys(params).length > 0) {
-            return translation.replace(/{(\w+)}/g, (match, k) => {
-                return params.hasOwnProperty(k) ? params[k] : match;
-            });
-        }
-
-        return translation;
-    }
+    const currentLang = currentLanguage()
 
     const fg_color = shell.breeze.is_light_theme() ? 'black' : 'white'
     const ICON_CHECKED_COLORED = ICON_CHECKED.replaceAll('currentColor', fg_color)

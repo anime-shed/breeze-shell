@@ -1,5 +1,6 @@
 import * as shell from "mshell";
 import { theme_presets, animation_presets } from "./constants";
+import { t, currentLanguage, isRTL } from "../shared/i18n";
 import { menu_controller } from "mshell";
 import { useState, useEffect, memo } from "react";
 
@@ -36,44 +37,7 @@ export const setNestedValue = (obj: any, path: string, value: any) => {
 
 // Translation helper using unified i18n system
 export const useTranslation = () => {
-    const currentLang = shell.breeze.user_language() === 'zh-CN' ? 'zh-CN' : 'en-US';
-
-    /**
-     * Perform placeholder substitution on a string
-     * @param str The string containing {placeholder} patterns
-     * @param params Map of placeholder names to values
-     * @returns String with placeholders replaced
-     */
-    const interpolate = (str: string, params: Record<string, string>): string => {
-        return str.replace(/{(\w+)}/g, (match, key) => {
-            return params.hasOwnProperty(key) ? params[key] : match;
-        });
-    };
-
-    /**
-     * Get a translated string by key
-     * @param key The translation key (e.g., "settings.title")
-     * @param params Optional parameters for placeholder substitution
-     */
-    const t = (key: string, params?: Record<string, string>): string => {
-        // Get the translation from the unified i18n system
-        const translation = shell.breeze.get_translation(key);
-
-        // If params provided, perform local interpolation
-        if (params && Object.keys(params).length > 0) {
-            return interpolate(translation, params);
-        }
-
-        return translation;
-    };
-
-    /**
-     * Check if current language is RTL
-     */
-    const isRTL = (): boolean => {
-        return shell.breeze.is_rtl();
-    };
-
+    const currentLang = currentLanguage();
     return { t, currentLang, isRTL };
 };
 

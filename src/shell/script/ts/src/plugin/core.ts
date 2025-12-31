@@ -1,5 +1,6 @@
 import * as shell from "mshell"
 import { getNestedValue, setNestedValue } from "../utils/object"
+import { t, isRTL } from "../shared/i18n"
 
 export const config_directory_main = shell.breeze.data_directory() + '/config/';
 
@@ -44,25 +45,11 @@ export const plugin = (import_meta, default_config = {}) => {
              * @param key Translation key
              * @param params Optional interpolation parameters
              */
-            t: (key: string, params?: Record<string, string>): string => {
-                // Get the translation from the unified i18n system
-                const translation = shell.breeze.get_translation(key);
-
-                // If params provided, perform local interpolation
-                if (params && Object.keys(params).length > 0) {
-                    return translation.replace(/{(\w+)}/g, (match, k) => {
-                        return params.hasOwnProperty(k) ? params[k] : match;
-                    });
-                }
-
-                return translation;
-            },
+            t: t,
             /**
              * Check if current language is RTL
              */
-            isRTL: (): boolean => {
-                return shell.breeze.is_rtl();
-            }
+            isRTL: isRTL
         },
         set_on_menu: (callback: (m: shell.menu_controller) => void) => {
             globalThis.on_plugin_menu[nameNoExt] = callback
