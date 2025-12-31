@@ -23,7 +23,7 @@ i18n_manager::i18n_manager() : current_lang_("en-US"), is_rtl_(false) {
 }
 
 std::string i18n_manager::get(const std::string& key) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     
     // Try current language first
     auto lang_it = translations_.find(current_lang_);
@@ -65,7 +65,7 @@ std::string i18n_manager::get(const std::string& key,
 }
 
 void i18n_manager::set_language(const std::string& lang) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     
     if (lang == current_lang_) {
         return;
@@ -90,18 +90,18 @@ void i18n_manager::set_language(const std::string& lang) {
 }
 
 std::string i18n_manager::current_language() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     return current_lang_;
 }
 
 bool i18n_manager::is_rtl() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     return is_rtl_;
 }
 
 void i18n_manager::register_translations(const std::string& lang,
                                           const std::map<std::string, std::string>& translations) {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     
     for (const auto& [key, value] : translations) {
         // Check if this is a core key - warn but don't override
@@ -116,7 +116,7 @@ void i18n_manager::register_translations(const std::string& lang,
 }
 
 void i18n_manager::reload() {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::unique_lock<std::shared_mutex> lock(mutex_);
     
     translations_.clear();
     plugin_translations_.clear();
@@ -331,7 +331,7 @@ std::string i18n_manager::interpolate(const std::string& str,
 }
 
 std::vector<std::string> i18n_manager::available_languages() const {
-    std::lock_guard<std::mutex> lock(mutex_);
+    std::shared_lock<std::shared_mutex> lock(mutex_);
     
     std::vector<std::string> languages;
     

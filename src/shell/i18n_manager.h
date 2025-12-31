@@ -2,7 +2,7 @@
 
 #include <filesystem>
 #include <map>
-#include <mutex>
+#include <shared_mutex>
 #include <optional>
 #include <set>
 #include <string>
@@ -89,6 +89,8 @@ private:
     // Non-copyable
     i18n_manager(const i18n_manager&) = delete;
     i18n_manager& operator=(const i18n_manager&) = delete;
+    i18n_manager(i18n_manager&&) = delete;
+    i18n_manager& operator=(i18n_manager&&) = delete;
 
     /**
      * @brief Load a locale file from disk.
@@ -129,7 +131,7 @@ private:
     // Set of core keys (cannot be overridden by plugins)
     std::set<std::string> core_keys_;
     
-    mutable std::mutex mutex_;
+    mutable std::shared_mutex mutex_;
 };
 
 } // namespace mb_shell
