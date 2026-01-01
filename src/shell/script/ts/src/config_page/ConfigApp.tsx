@@ -139,7 +139,7 @@ export const ConfigApp = () => {
 
     return (
         <AppProviders values={providerValues}>
-            <flex horizontal flexGrow={1} autoSize={false} gap={10} alignItems="stretch">
+            <flex horizontal flexGrow={1} autoSize={false} gap={10} alignItems="stretch" width={WINDOW_WIDTH} height={WINDOW_HEIGHT}>
                 <Sidebar
                     activePage={activePage}
                     setActivePage={setActivePage}
