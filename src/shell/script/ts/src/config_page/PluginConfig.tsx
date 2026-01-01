@@ -10,6 +10,7 @@ const PluginConfig = memo(() => {
     const { t } = useTranslation();
 
     const [installedPlugins, setInstalledPlugins] = useState<string[]>([]);
+    const [enabledPlugins, setEnabledPlugins] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         reloadPluginsList();
@@ -18,6 +19,15 @@ const PluginConfig = memo(() => {
     const reloadPluginsList = () => {
         const plugins = loadPlugins();
         setInstalledPlugins(plugins);
+
+        const enabled = new Set<string>();
+        for (const name of plugins) {
+            const path = shell.breeze.data_directory() + '/scripts/' + name + '.js';
+            if (shell.fs.exists(path)) {
+                enabled.add(name);
+            }
+        }
+        setEnabledPlugins(enabled);
     };
 
     const handleTogglePlugin = (name: string) => {
@@ -71,7 +81,7 @@ const PluginConfig = memo(() => {
     const regularPlugins = installedPlugins.filter(name => !isPrioritized(name));
 
     return (
-        <flex gap={20} width={580} height={550} autoSize={false} alignItems="stretch">
+        <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.config")}</Text>
 
             <flex enableScrolling maxHeight={500} alignItems="stretch">
@@ -79,7 +89,7 @@ const PluginConfig = memo(() => {
                     <flex gap={10} alignItems="stretch" paddingBottom={10} paddingTop={10}>
                         <Text fontSize={16}>{t("plugins.priority_load")}</Text>
                         {prioritizedPlugins.map(name => {
-                            const isEnabled = shell.fs.exists(shell.breeze.data_directory() + '/scripts/' + name + '.js');
+                            const isEnabled = enabledPlugins.has(name);
                             return (
                                 <PluginItem
                                     key={name}
@@ -98,7 +108,7 @@ const PluginConfig = memo(() => {
                 <flex gap={10} alignItems="stretch">
                     {prioritizedPlugins.length === 0 && <Text fontSize={16}>{t("plugins.installed_plugins")}</Text>}
                     {regularPlugins.map(name => {
-                        const isEnabled = shell.fs.exists(shell.breeze.data_directory() + '/scripts/' + name + '.js');
+                        const isEnabled = enabledPlugins.has(name);
                         return (
                             <PluginItem
                                 key={name}

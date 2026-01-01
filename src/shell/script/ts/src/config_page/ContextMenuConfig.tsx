@@ -62,7 +62,7 @@ const ContextMenuConfig = memo(() => {
     const currentAnimationPreset = getCurrentPreset(currentAnimation, animation_presets);
 
     return (
-        <flex gap={20} alignItems="stretch" width={500} autoSize={false}>
+        <flex gap={20} alignItems="stretch" flexGrow={1}>
             <Text fontSize={24}>{t("settings.title")}</Text>
 
             <flex gap={10}>
@@ -117,6 +117,7 @@ const ContextMenuConfig = memo(() => {
                     {Object.keys(animation_presets).map(name => (
                         <Button
                             key={name}
+                            selected={name === currentAnimationPreset}
                             onClick={() => {
                                 try {
                                     let newAnimation;
