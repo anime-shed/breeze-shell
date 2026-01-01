@@ -4,7 +4,8 @@
         "name": "简体中文",
         "direction": "ltr"
     },
-    "settings.title": "Breeze 设置",
+    "settings.title": "常规设置",
+    "settings.language": "语言",
     "settings.theme": "主题",
     "settings.animation": "动画",
     "settings.misc": "杂项",
@@ -28,7 +29,7 @@
     "explorer.empty_recycle_bin": "清空回收站",
     "menu.set_priority": "设为优先加载",
     "menu.cancel_priority": "取消优先加载",
-    "sidebar.main_config": "主配置",
+    "sidebar.main_config": "设置",
     "sidebar.update": "更新",
     "sidebar.plugin_store": "插件商店",
     "sidebar.plugin_config": "插件配置",
@@ -74,5 +75,7 @@
     "common.please_wait": "请稍候",
     "common.load_failed": "加载失败",
     "common.network_error": "网络错误",
-    "common.latest": "(最新)"
+    "common.latest": "(最新)",
+    "language.en-US": "英语",
+    "language.zh-CN": "简体中文"
 }

@@ -64,16 +64,24 @@ export const applyPreset = (preset: any, origin: any, presets: any) => {
     return newPreset;
 };
 
-export const checkPresetMatch = (current: any, preset: any) => {
+export const checkPresetMatch = (current: any, preset: any, ignoreKeys: string[] = []) => {
     if (!current) return false;
     if (!preset) return false;
-    return Object.keys(preset).every(key => JSON.stringify(current[key]) === JSON.stringify(preset[key]));
+    return Object.keys(preset).every(key => {
+        if (ignoreKeys.includes(key)) return true;
+        return JSON.stringify(current[key]) === JSON.stringify(preset[key]);
+    });
 };
 
-export const getCurrentPreset = (current: any, presets: any) => {
-    if (!current) return "default";
+export const getCurrentPreset = (current: any, presets: any, ignoreKeys: string[] = []) => {
+    // If the object is empty or only contains ignored keys, it's default
+    const allPresetKeys = getAllSubkeys(presets);
+    const hasAnyPresetKey = current && Object.keys(current).some(k => allPresetKeys.includes(k) && !ignoreKeys.includes(k));
+
+    if (!current || !hasAnyPresetKey) return "default";
+
     for (const [name, preset] of Object.entries(presets)) {
-        if (preset && checkPresetMatch(current, preset)) {
+        if (preset && checkPresetMatch(current, preset, ignoreKeys)) {
             return name;
         }
     }

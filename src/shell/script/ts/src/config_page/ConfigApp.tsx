@@ -139,14 +139,13 @@ export const ConfigApp = () => {
 
     return (
         <AppProviders values={providerValues}>
-            <flex horizontal width={WINDOW_WIDTH} height={WINDOW_HEIGHT} autoSize={false} gap={10}>
+            <flex horizontal flexGrow={1} autoSize={false} gap={10} alignItems="stretch">
                 <Sidebar
                     activePage={activePage}
                     setActivePage={setActivePage}
                     sidebarWidth={SIDEBAR_WIDTH}
-                    windowHeight={WINDOW_HEIGHT}
                 />
-                <flex padding={20} flexGrow={1}>
+                <flex padding={20} flexGrow={1} enableScrolling={true} gap={20} alignItems="stretch">
                     {activePage === 'context-menu' && <ContextMenuConfig />}
                     {activePage === 'update' && <UpdatePage />}
                     {activePage === 'plugin-store' && <PluginStore />}

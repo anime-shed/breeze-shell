@@ -536,6 +536,7 @@ breeze_ui::window::create_ex(std::string title, int width, int height,
     rt->width = width;
     rt->height = height;
     rt->title = title;
+    rt->resizable = true;
 
     auto win = std::make_shared<breeze_ui::window>();
     win->$render_target = std::move(rt);
