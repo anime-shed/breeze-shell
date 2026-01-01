@@ -141,10 +141,10 @@ const PluginStore = memo(() => {
     };
 
     return (
-        <flex gap={20}>
+        <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.store")}</Text>
             <flex gap={10} alignItems="stretch" flexGrow={1}>
-                <flex enableScrolling maxHeight={500} alignItems="stretch">
+                <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
                     {plugins.map((plugin: any) => {
                         const status = pluginStatuses[plugin.name] || {
                             installed: false,

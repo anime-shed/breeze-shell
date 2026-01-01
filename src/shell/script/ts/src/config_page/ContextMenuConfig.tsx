@@ -1,7 +1,7 @@
 import * as shell from "mshell";
 import { Button, Text, Toggle } from "./components";
 import { ContextMenuContext, DebugConsoleContext, GlobalConfigContext } from "./contexts";
-import { useTranslation, getNestedValue, setNestedValue } from "./utils";
+import { useTranslation, getNestedValue, setNestedValue, applyPreset, getCurrentPreset } from "./utils";
 import { theme_presets, animation_presets } from "./constants";
 import { memo, useContext, useEffect, useState } from "react";
 const ContextMenuConfig = memo(() => {
@@ -20,45 +20,9 @@ const ContextMenuConfig = memo(() => {
     const currentTheme = config?.theme;
     const currentAnimation = config?.theme?.animation;
 
-    const getAllSubkeys = (presets: any) => {
-        if (!presets) return [];
-        const keys = new Set();
-        for (const v of Object.values(presets)) {
-            if (v)
-                for (const key of Object.keys(v)) {
-                    keys.add(key);
-                }
-        }
-        return [...keys];
-    };
 
-    const applyPreset = (preset: any, origin: any, presets: any) => {
-        const allSubkeys = getAllSubkeys(presets);
-        const newPreset = preset ? { ...preset } : {};
-        for (let key in origin) {
-            if (allSubkeys.includes(key)) continue;
-            newPreset[key] = origin[key];
-        }
-        return newPreset;
-    };
 
-    const checkPresetMatch = (current: any, preset: any) => {
-        if (!current) return false;
-        if (!preset) return false;
-        return Object.keys(preset).every(key => JSON.stringify(current[key]) === JSON.stringify(preset[key]));
-    };
-
-    const getCurrentPreset = (current: any, presets: any) => {
-        if (!current) return "default";
-        for (const [name, preset] of Object.entries(presets)) {
-            if (preset && checkPresetMatch(current, preset)) {
-                return name;
-            }
-        }
-        return "custom";
-    };
-
-    const currentThemePreset = getCurrentPreset(currentTheme, theme_presets);
+    const currentThemePreset = getCurrentPreset(currentTheme, theme_presets, ['animation']);
     const currentAnimationPreset = getCurrentPreset(currentAnimation, animation_presets);
 
     return (
@@ -77,7 +41,7 @@ const ContextMenuConfig = memo(() => {
                                 updateGlobal({ ...globalConfig, language: lang });
                             }}
                         >
-                            <Text fontSize={14}>{lang}</Text>
+                            <Text fontSize={14}>{t("language." + lang) || lang}</Text>
                         </Button>
                     ))}
                 </flex>
@@ -93,13 +57,8 @@ const ContextMenuConfig = memo(() => {
                             selected={name === currentThemePreset}
                             onClick={() => {
                                 try {
-                                    let newTheme;
-                                    if (!theme_presets[name]) {
-                                        newTheme = undefined;
-                                    } else {
-                                        newTheme = applyPreset(theme_presets[name], config?.theme, theme_presets);
-                                    }
-                                    update(newTheme ? { ...config, theme: newTheme } : { ...config, theme: undefined });
+                                    const newTheme = applyPreset(theme_presets[name], config?.theme, theme_presets);
+                                    update({ ...config, theme: newTheme });
                                 } catch (e) {
                                     shell.println(e);
                                 }

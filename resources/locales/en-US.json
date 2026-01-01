@@ -4,7 +4,8 @@
         "name": "English (US)",
         "direction": "ltr"
     },
-    "settings.title": "Breeze Settings",
+    "settings.title": "General Settings",
+    "settings.language": "Language",
     "settings.theme": "Theme",
     "settings.animation": "Animation",
     "settings.misc": "Miscellaneous",
@@ -28,7 +29,7 @@
     "explorer.empty_recycle_bin": "Empty Recycle Bin",
     "menu.set_priority": "Set as Priority Load",
     "menu.cancel_priority": "Cancel Priority Load",
-    "sidebar.main_config": "Main Config",
+    "sidebar.main_config": "Settings",
     "sidebar.update": "Update",
     "sidebar.plugin_store": "Plugin Store",
     "sidebar.plugin_config": "Plugin Config",
@@ -74,5 +75,7 @@
     "common.please_wait": "Please wait",
     "common.load_failed": "Load failed",
     "common.network_error": "Network error",
-    "common.latest": "(latest)"
+    "common.latest": "(latest)",
+    "language.en-US": "English",
+    "language.zh-CN": "Chinese (Simplified)"
 }

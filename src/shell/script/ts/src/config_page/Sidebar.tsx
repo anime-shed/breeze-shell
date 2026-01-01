@@ -16,13 +16,11 @@ import { useTranslation } from "./utils";
 const Sidebar = memo(({
     activePage,
     setActivePage,
-    sidebarWidth,
-    windowHeight
+    sidebarWidth
 }: {
     activePage: string;
     setActivePage: (page: string) => void;
     sidebarWidth: number;
-    windowHeight: number;
 }) => {
     const { t } = useTranslation();
     const { updateData, setUpdateData } = useContext(UpdateDataContext)!;
@@ -61,7 +59,7 @@ const Sidebar = memo(({
     return (
         <flex
             width={sidebarWidth}
-            height={windowHeight}
+            flexGrow={1}
             backgroundColor={shell.breeze.is_light_theme() ? '#f0f0f077' : '#40404077'}
             padding={10}
             gap={10}
@@ -70,7 +68,6 @@ const Sidebar = memo(({
         >
             <flex horizontal alignItems="center" gap={3} padding={10}>
                 {iconElement(ICON_BREEZE, 24)}
-                <Text fontSize={18}>Breeze</Text>
             </flex>
             <SidebarItem onClick={() => setActivePage('context-menu')} icon={ICON_CONTEXT_MENU} isActive={activePage === 'context-menu'}>{t("sidebar.main_config")}</SidebarItem>
             <SidebarItem onClick={() => setActivePage('update')} icon={ICON_UPDATE} isActive={activePage === 'update'}>{t("sidebar.update")}</SidebarItem>

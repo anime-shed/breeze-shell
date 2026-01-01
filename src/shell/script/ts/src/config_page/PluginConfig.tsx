@@ -84,7 +84,7 @@ const PluginConfig = memo(() => {
         <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.config")}</Text>
 
-            <flex enableScrolling maxHeight={500} alignItems="stretch">
+            <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
                 {prioritizedPlugins.length > 0 && (
                     <flex gap={10} alignItems="stretch" paddingBottom={10} paddingTop={10}>
                         <Text fontSize={16}>{t("plugins.priority_load")}</Text>

@@ -72,7 +72,7 @@ const UpdatePage = memo(() => {
     };
 
     return (
-        <flex gap={20}>
+        <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("update.title")}</Text>
             <flex gap={10}>
                 <Text>{t("update.current_version", { version: current_version })}</Text>
@@ -83,10 +83,10 @@ const UpdatePage = memo(() => {
                             exist_old_file ? t("plugins.update_downloaded") : (current_version === remote_version ? (current_version + ' ' + t('common.latest')) : `${current_version} -> ${remote_version}`)}</Text>
                 </Button>
             </flex>
-            <flex gap={10}>
+            <flex gap={10} flexGrow={1} alignItems="stretch">
                 <Text>{t("update.changelog")}</Text>
-                <flex enableScrolling maxHeight={500} width={550} gap={10}>
-                    <SimpleMarkdownRender text={updateData.shell.changelog} maxWidth={550} />
+                <flex enableScrolling={true} flexGrow={1} gap={10} alignItems="stretch">
+                    <SimpleMarkdownRender text={updateData.shell.changelog} maxWidth={-1} />
                 </flex>
             </flex>
         </flex>
