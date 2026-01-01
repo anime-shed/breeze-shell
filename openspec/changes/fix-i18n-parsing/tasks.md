@@ -218,3 +218,19 @@
 
 **Critical Path**: 1.1 → 2.x → 3.1.1 → 3.2.x (minimum for verification)
 **Parallelizable**: Section 4.x can be done independently after build succeeds
+
+---
+
+## 6. Final Cleanup
+> **Goal**: Migrate remaining hardcoded strings in configMenu.ts
+
+- [x] **6.1** Refactor `src/shell/script/ts/src/menu/configMenu.ts`
+  - [x] **6.1.1** Update `theme_presets` keys to semantic English (default, compact, etc.)
+  - [x] **6.1.2** Update `animation_presets` keys to semantic English (default, fast, none)
+  - [x] **6.1.3** Update `getCurrentPreset` to return semantic keys (including "custom")
+  - [x] **6.1.4** Update `updateIconStatus` to handle localized matching
+  - [x] **6.1.5** Replace hardcoded menu names ("主题", "动画") with `t()` calls
+
+- [x] **6.2** Verify Cleanup
+  - [x] **6.2.1** Run `git grep` check again (should be clean)
+  - [x] **6.2.2** Verify manual testing of presets in UI
