@@ -79,13 +79,8 @@ const ContextMenuConfig = memo(() => {
                             selected={name === currentAnimationPreset}
                             onClick={() => {
                                 try {
-                                    let newAnimation;
-                                    if (!animation_presets[name]) {
-                                        newAnimation = undefined;
-                                    } else {
-                                        newAnimation = animation_presets[name];
-                                    }
-                                    update({ ...config, theme: { ...config.theme, animation: newAnimation } });
+                                    const newAnimation = applyPreset(animation_presets[name], config?.theme?.animation, animation_presets);
+                                    update({ ...config, theme: { ...config.theme, animation: Object.keys(newAnimation).length ? newAnimation : undefined } });
                                 } catch (e) {
                                     shell.println(e);
                                 }

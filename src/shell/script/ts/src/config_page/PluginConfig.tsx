@@ -12,32 +12,42 @@ const PluginConfig = memo(() => {
     const [installedPlugins, setInstalledPlugins] = useState<string[]>([]);
     const [enabledPlugins, setEnabledPlugins] = useState<Set<string>>(new Set());
 
+    const [loading, setLoading] = useState(false);
+
     useEffect(() => {
         reloadPluginsList();
     }, []);
 
-    const reloadPluginsList = () => {
+    const reloadPluginsList = async () => {
+        setLoading(true);
+        // Allow UI to render loading state
+        await new Promise(r => setTimeout(r, 0));
+
         const plugins = loadPlugins();
         setInstalledPlugins(plugins);
 
         const enabled = new Set<string>();
+        let count = 0;
         for (const name of plugins) {
+            if (count++ % 50 === 0) await new Promise(r => setTimeout(r, 0));
+
             const path = shell.breeze.data_directory() + '/scripts/' + name + '.js';
             if (shell.fs.exists(path)) {
                 enabled.add(name);
             }
         }
         setEnabledPlugins(enabled);
+        setLoading(false);
     };
 
-    const handleTogglePlugin = (name: string) => {
+    const handleTogglePlugin = async (name: string) => {
         togglePlugin(name);
-        reloadPluginsList();
+        await reloadPluginsList();
     };
 
-    const handleDeletePlugin = (name: string) => {
+    const handleDeletePlugin = async (name: string) => {
         deletePlugin(name);
-        reloadPluginsList();
+        await reloadPluginsList();
     };
 
     const isPrioritized = (name: string) => {
@@ -83,6 +93,7 @@ const PluginConfig = memo(() => {
     return (
         <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.config")}</Text>
+            {loading && <Text>{t("common.loading")}</Text>}
 
             <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
                 {prioritizedPlugins.length > 0 && (
