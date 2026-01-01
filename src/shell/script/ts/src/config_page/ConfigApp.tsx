@@ -146,7 +146,7 @@ export const ConfigApp = () => {
                     sidebarWidth={SIDEBAR_WIDTH}
                     windowHeight={WINDOW_HEIGHT}
                 />
-                <flex padding={20}>
+                <flex padding={20} flexGrow={1}>
                     {activePage === 'context-menu' && <ContextMenuConfig />}
                     {activePage === 'update' && <UpdatePage />}
                     {activePage === 'plugin-store' && <PluginStore />}
