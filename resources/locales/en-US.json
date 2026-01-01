@@ -35,6 +35,7 @@
     "sidebar.plugin_config": "Plugin Config",
     "sidebar.source": "Update Source",
     "plugins.loading": "Loading...",
+    "plugins.loading_statuses": "Loading plugin statuses...",
     "plugins.updating": "Updating...",
     "plugins.installing": "Installing...",
     "plugins.installed": "Installed",

@@ -45,7 +45,13 @@ const PluginStore = memo(() => {
             const statuses: Record<string, PluginStatus> = {};
 
             try {
+                // Chunk processing to avoid blocking UI
+                let processedCount = 0;
                 for (const plugin of updateData.plugins) {
+                    if (processedCount++ % 10 === 0) {
+                        await new Promise(resolve => setTimeout(resolve, 0));
+                    }
+
                     try {
                         const basePath = shell.breeze.data_directory() + '/scripts/' + plugin.local_path;
                         let installPath: string | null = null;
@@ -62,7 +68,7 @@ const PluginStore = memo(() => {
                         }
 
                         const installed = installPath !== null;
-                        let localVersion = t('plugins.not_installed');
+                        let localVersion = '0.0.0';
 
                         if (installed && installPath) {
                             try {
@@ -93,7 +99,7 @@ const PluginStore = memo(() => {
                         statuses[plugin.name] = {
                             installed: false,
                             installPath: null,
-                            localVersion: t('plugins.not_installed'),
+                            localVersion: '0.0.0',
                             hasUpdate: false
                         };
                     }
@@ -109,7 +115,7 @@ const PluginStore = memo(() => {
 
         // Run async without blocking
         loadPluginStatuses();
-    }, [updateData?.plugins, t, setErrorMessage]);
+    }, [updateData?.plugins, t]);
 
     const installPlugin = (plugin: any) => {
         if (installingPlugins.has(plugin.name)) return;
@@ -143,12 +149,13 @@ const PluginStore = memo(() => {
     return (
         <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.store")}</Text>
+            {loadingStatuses && <Text>{t("plugins.loading_statuses")}</Text>}
             <flex gap={10} alignItems="stretch" flexGrow={1}>
                 <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
                     {plugins.map((plugin: any) => {
                         const status = pluginStatuses[plugin.name] || {
                             installed: false,
-                            localVersion: t('plugins.not_installed'),
+                            localVersion: '0.0.0',
                             hasUpdate: false
                         };
                         const { installed, localVersion: local_version, hasUpdate: have_update } = status;

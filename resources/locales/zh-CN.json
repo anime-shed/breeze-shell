@@ -35,6 +35,7 @@
     "sidebar.plugin_config": "插件配置",
     "sidebar.source": "更新源",
     "plugins.loading": "加载中...",
+    "plugins.loading_statuses": "加载插件状态中...",
     "plugins.updating": "更新中...",
     "plugins.installing": "安装中...",
     "plugins.installed": "已安装",
