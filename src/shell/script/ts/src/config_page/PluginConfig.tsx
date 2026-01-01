@@ -2,7 +2,7 @@ import * as shell from "mshell";
 import { showMenu } from "./utils";
 import { Text, PluginItem } from "./components";
 import { PluginLoadOrderContext } from "./contexts";
-import { useTranslation, loadPlugins, togglePlugin, deletePlugin } from "./utils";
+import { useTranslation, loadPlugins, togglePlugin, deletePlugin, useTextTruncation } from "./utils";
 import { memo, useContext, useEffect, useState } from "react";
 
 const PluginConfig = memo(() => {
@@ -23,7 +23,7 @@ const PluginConfig = memo(() => {
         // Allow UI to render loading state
         await new Promise(r => setTimeout(r, 0));
 
-        const plugins = loadPlugins();
+        const plugins = await loadPlugins();
         setInstalledPlugins(plugins);
 
         const enabled = new Set<string>();

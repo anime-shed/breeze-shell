@@ -41,7 +41,7 @@ const ContextMenuConfig = memo(() => {
                                 updateGlobal({ ...globalConfig, language: lang });
                             }}
                         >
-                            <Text fontSize={14}>{t("language." + lang) || lang}</Text>
+                            <Text fontSize={14}>{t(`language.${lang}`) || lang}</Text>
                         </Button>
                     ))}
                 </flex>

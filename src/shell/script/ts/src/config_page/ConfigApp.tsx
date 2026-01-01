@@ -1,6 +1,7 @@
 import * as shell from "mshell";
-import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH } from "./constants";
-import { loadConfig, saveConfig } from "./utils";
+import { Button, Text } from "./components";
+import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, BREAKPOINTS, RESPONSIVE_SPACING } from "./constants";
+import { saveConfig, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
 import {
     ContextMenuContext,
     DebugConsoleContext,
@@ -108,7 +109,14 @@ const AppProviders = ({ children, values }: { children: ReactNode, values: Provi
     </GlobalConfigContext.Provider>
 );
 
-export const ConfigApp = () => {
+const DEFAULT_CONFIG: GlobalConfig = {
+    context_menu: {},
+    debug_console: false,
+    plugin_load_order: []
+};
+
+export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_HEIGHT }: { initialWidth?: number, initialHeight?: number }) => {
+    const { t } = useTranslation();
     const [activePage, setActivePage] = useState('context-menu');
     const [contextMenuConfig, setContextMenuConfig] = useState<ContextMenuSettings>({});
     const [debugConsole, setDebugConsole] = useState<boolean>(false);
@@ -120,52 +128,121 @@ export const ConfigApp = () => {
     const [currentPluginSource, setCurrentPluginSource] = useState<string>('Enlysure');
     const [cachedPluginIndex, setCachedPluginIndex] = useState<Record<string, PluginIndexEntry[]> | null>(null);
 
-    useEffect(() => {
+    // Task 1.1.1: Add loading state variables for async config loading
+    const [isLoading, setIsLoading] = useState(true);
+    const [configError, setConfigError] = useState<string | null>(null);
+
+    // Task 3.3: Performance monitoring
+    const metrics = usePerformanceMetrics();
+
+    // Task 1.1.2: Create async config loading function with error handling
+    const loadConfigAsync = async () => {
         try {
-            const current_config_path = shell.breeze.data_directory() + '/config.json';
-            const current_config = shell.fs.read(current_config_path);
-            const parsed = JSON.parse(current_config);
+            setIsLoading(true);
+            setConfigError(null);
+
+            const parsed = await loadConfig();
+
+            // Small minimum visible duration to prevent flashing
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             setConfig(parsed);
             setContextMenuConfig(parsed.context_menu || {});
             setDebugConsole(parsed.debug_console || false);
             setPluginLoadOrder(parsed.plugin_load_order || []);
+
         } catch (error) {
-            console.error('Failed to load config:', error);
-            // Use default config on load failure
-            const defaultConfig = {
-                context_menu: {},
-                debug_console: false,
-                plugin_load_order: []
-            };
-            setConfig(defaultConfig);
-            setContextMenuConfig(defaultConfig.context_menu);
-            setDebugConsole(defaultConfig.debug_console);
-            setPluginLoadOrder(defaultConfig.plugin_load_order);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            const errorStack = error instanceof Error && error.stack ? `\nStack: ${error.stack}` : '';
+            shell.println(`[ConfigApp] Failed to load config: ${errorMsg}${errorStack}`);
+
+            setConfigError(errorMsg);
+            setErrorMessage('Failed to load configuration. Using defaults.');
+            setConfig(DEFAULT_CONFIG);
+            setContextMenuConfig(DEFAULT_CONFIG.context_menu || {});
+            setDebugConsole(DEFAULT_CONFIG.debug_console || false);
+            setPluginLoadOrder(DEFAULT_CONFIG.plugin_load_order || []);
+        } finally {
+            setIsLoading(false);
         }
+    };
+
+    // Task 1.1.3: Replace synchronous config loading with async pattern
+    useEffect(() => {
+        loadConfigAsync();
     }, []);
 
-    const updateContextMenu = (newConfig: any) => {
+    // Task 2.1.1: Add window resize hook with DPI awareness
+    const [windowSize, setWindowSize] = useState({ width: initialWidth, height: initialHeight });
+    const [dpiScale, setDpiScale] = useState(1.0);
+
+    // Task 2.4.2: Use responsive hook for breakpoint-aware styling
+    const responsive = useResponsive(windowSize.width);
+
+    useEffect(() => {
+        const handleResize = () => {
+            try {
+                // Check if shell.window is available and has size methods
+                if (shell && (shell as any).window && typeof (shell as any).window.getSize === 'function') {
+                    const size = (shell as any).window.getSize();
+                    setWindowSize({ width: size.width, height: size.height });
+                } else {
+                    // Fallback: use provided initial dimensions
+                    setWindowSize({ width: initialWidth, height: initialHeight });
+                }
+
+                // Detect DPI scaling if available
+                if (shell && (shell as any).window && typeof (shell as any).window.getDPIScale === 'function') {
+                    const scale = (shell as any).window.getDPIScale();
+                    setDpiScale(scale || 1.0);
+                }
+            } catch (error) {
+                console.error('Error handling window resize:', error);
+            }
+        };
+
+        // Initial size detection
+        handleResize();
+
+        // Set up resize listener if supported
+        if (shell && (shell as any).window && typeof (shell as any).window.addEventListener === 'function') {
+            (shell as any).window.addEventListener('resize', handleResize);
+
+            // Cleanup function
+            return () => {
+                if (shell && (shell as any).window && typeof (shell as any).window.removeEventListener === 'function') {
+                    (shell as any).window.removeEventListener('resize', handleResize);
+                }
+            };
+        }
+
+        // Return empty cleanup if not supported
+        return () => { };
+    }, [initialWidth, initialHeight]);
+
+    // Task 1.3.5: Update callers to handle async functions
+    const updateContextMenu = async (newConfig: ContextMenuSettings) => {
         setContextMenuConfig(newConfig);
         const newGlobal = { ...config, context_menu: newConfig };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        await saveConfig(newGlobal);
     };
 
-    const updateDebugConsole = (value: boolean) => {
+    const updateDebugConsole = async (value: boolean) => {
         setDebugConsole(value);
         const newGlobal = { ...config, debug_console: value };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        await saveConfig(newGlobal);
     };
 
-    const updatePluginLoadOrder = (order: any[]) => {
+    const updatePluginLoadOrder = async (order: PluginInfo[]) => {
         setPluginLoadOrder(order);
         const newGlobal = { ...config, plugin_load_order: order };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        await saveConfig(newGlobal);
     };
 
-    const updateGlobalConfig = (configPatch: Partial<GlobalConfig>) => {
+    const updateGlobalConfig = async (configPatch: Partial<GlobalConfig>) => {
         const newGlobal = { ...config, ...configPatch };
         setConfig(newGlobal);
         if ('context_menu' in configPatch) {
@@ -177,7 +254,7 @@ export const ConfigApp = () => {
         if ('plugin_load_order' in configPatch) {
             setPluginLoadOrder(configPatch.plugin_load_order || []);
         }
-        saveConfig(newGlobal);
+        await saveConfig(newGlobal);
     };
 
     const providerValues = {
@@ -192,17 +269,107 @@ export const ConfigApp = () => {
 
     return (
         <AppProviders values={providerValues}>
-            <flex horizontal flexGrow={1} gap={10} alignItems="stretch">
-                <Sidebar
-                    activePage={activePage}
-                    setActivePage={setActivePage}
-                    sidebarWidth={SIDEBAR_WIDTH}
-                />
-                <flex padding={20} flexGrow={1} enableScrolling={true} gap={20} alignItems="stretch">
-                    {activePage === 'context-menu' && <ContextMenuConfig />}
-                    {activePage === 'update' && <UpdatePage />}
-                    {activePage === 'plugin-store' && <PluginStore />}
-                    {activePage === 'plugin-config' && <PluginConfig />}
+            {/* Task 2.1.3: Apply minimum window size constraints */}
+            <flex
+                horizontal
+                flexGrow={1}
+                autoSize={false}
+                width={Math.max(windowSize.width, 600)}
+                height={Math.max(windowSize.height, 400)}
+                gap={10}
+                alignItems="stretch"
+                backgroundColor={shell.breeze.is_light_theme() ? '#f5f5f5' : '#202020'}
+            >
+                {!responsive.isMobile && !isLoading && (
+                    <Sidebar
+                        activePage={activePage}
+                        setActivePage={setActivePage}
+                        sidebarWidth={Math.round(SIDEBAR_WIDTH * dpiScale)}
+                    />
+                )}
+
+                <flex
+                    padding={Math.round(20 * dpiScale)}
+                    flexGrow={1}
+                    enableScrolling={true}
+                    gap={Math.round(20 * dpiScale)}
+                    alignItems="stretch"
+                >
+                    {/* Task 1.1.4: Add loading spinner/error display */}
+                    {isLoading && (
+                        <flex
+                            backgroundColor="rgba(0,0,0,0.8)"
+                            alignItems="center"
+                            justifyContent="center"
+                            flexGrow={1}
+                        >
+                            <flex alignItems="center" gap={10}>
+                                <Text fontSize={18}>Loading configuration...</Text>
+                                {configError && (
+                                    <Text fontSize={14}>{configError}</Text>
+                                )}
+                            </flex>
+                        </flex>
+                    )}
+
+                    {!isLoading && metrics.showPerformanceWarning && (
+                        <flex horizontal justifyContent="end">
+                            <flex backgroundColor="rgba(255,100,100,0.1)" padding={5} borderRadius={4}>
+                                <Text fontSize={10}>{`FPS: ${metrics.fps} | Mem: ${metrics.memoryUsage}MB`}</Text>
+                            </flex>
+                        </flex>
+                    )}
+
+                    {!isLoading && (
+                        <>
+                            {/* Task 2.4.3: Add conditional rendering for mobile vs desktop */}
+                            {responsive.isMobile ? (
+                                // Mobile layout: simplified navigation
+                                <flex gap={RESPONSIVE_SPACING.xs} flexGrow={1} alignItems="stretch">
+                                    <flex padding={RESPONSIVE_SPACING.xs} gap={RESPONSIVE_SPACING.xs}>
+                                        <Text fontSize={responsive.isMobile ? 20 : 24}>
+                                            {activePage === 'context-menu' ? t("menu.context_menu") :
+                                                activePage === 'update' ? t("update.title") :
+                                                    activePage === 'plugin-store' ? t("plugins.store") :
+                                                        activePage === 'plugin-config' ? t("plugins.config") : ""}
+                                        </Text>
+                                        <flex gap={RESPONSIVE_SPACING.xs} horizontal>
+                                            {['context-menu', 'update', 'plugin-store', 'plugin-config'].map((page) => (
+                                                <Button
+                                                    key={page}
+                                                    onClick={() => setActivePage(page)}
+                                                    selected={activePage === page}
+                                                    responsive={true}
+                                                    scale={0.9}
+                                                >
+                                                    <Text fontSize={14}>
+                                                        {page === 'context-menu' ? t("menu.context_menu") :
+                                                            page === 'update' ? t("update.title") :
+                                                                page === 'plugin-store' ? t("plugins.store") :
+                                                                    page === 'plugin-config' ? t("plugins.config") : ""}
+                                                    </Text>
+                                                </Button>
+                                            ))}
+                                        </flex>
+                                    </flex>
+                                    <flex flexGrow={1} alignItems="stretch" padding={RESPONSIVE_SPACING.xs}>
+                                        {activePage === 'context-menu' && <ContextMenuConfig />}
+                                        {activePage === 'update' && <UpdatePage />}
+                                        {activePage === 'plugin-store' && <PluginStore />}
+                                        {activePage === 'plugin-config' && <PluginConfig />}
+                                    </flex>
+                                </flex>
+                            ) : (
+                                // Desktop layout: content only (Sidebar handled above)
+                                <>
+                                    {activePage === 'context-menu' && <ContextMenuConfig />}
+                                    {activePage === 'update' && <UpdatePage />}
+                                    {activePage === 'plugin-store' && <PluginStore />}
+                                    {activePage === 'plugin-config' && <PluginConfig />}
+                                </>
+                            )}
+                        </>
+                    )}
                 </flex>
             </flex>
         </AppProviders>

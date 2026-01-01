@@ -82,6 +82,18 @@ export const showConfigPage = () => {
 
     const widget = shell.breeze_ui.widgets_factory.create_flex_layout_widget();
     const renderer = createRenderer(widget);
-    renderer.render(React.createElement(ConfigApp, null));
-    win.set_root_widget(widget)
+
+    const onResize = (w: number, h: number) => {
+        renderer.update(React.createElement(ConfigApp, { initialWidth: w, initialHeight: h }));
+    };
+
+    // Initial render
+    onResize(800, 600);
+    win.set_root_widget(widget);
+
+    const winAny = win as any;
+    // Listen for resize events if supported
+    if (winAny.set_resize_callback) {
+        winAny.set_resize_callback(onResize);
+    }
 }
