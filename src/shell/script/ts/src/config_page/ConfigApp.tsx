@@ -17,26 +17,65 @@ import PluginStore from "./PluginStore";
 import PluginConfig from "./PluginConfig";
 import { useState, useEffect, ReactNode } from "react";
 
+interface AnimationSettings {
+    duration?: number;
+    easing?: string;
+    type?: string;
+    [key: string]: string | number | boolean | undefined;
+}
+
+interface ThemeSettings {
+    animation?: AnimationSettings;
+    acrylic?: boolean;
+    use_dwm_if_available?: boolean;
+    [key: string]: AnimationSettings | string | number | boolean | undefined;
+}
+
 interface ContextMenuSettings {
-    theme?: any;
-    animation?: any;
-    [key: string]: any;
+    theme?: ThemeSettings;
+    vsync?: boolean;
+    hotkeys?: boolean;
+    show_settings_button?: boolean;
+    ignore_owner_draw?: boolean;
+    reverse_if_open_to_up?: boolean;
+    [key: string]: ThemeSettings | string | number | boolean | undefined;
+}
+
+interface PluginInfo {
+    name: string;
+    enabled?: boolean;
+    [key: string]: string | boolean | undefined;
+}
+
+interface UpdateInfo {
+    version?: string;
+    download_url?: string;
+    release_notes?: string;
+    [key: string]: string | undefined;
+}
+
+interface PluginIndexEntry {
+    name: string;
+    description?: string;
+    version?: string;
+    author?: string;
+    [key: string]: string | undefined;
 }
 
 interface GlobalConfig {
     context_menu?: ContextMenuSettings;
     debug_console?: boolean;
-    plugin_load_order?: any[];
+    plugin_load_order?: PluginInfo[];
     language?: string;
-    [key: string]: any;
+    [key: string]: ContextMenuSettings | PluginInfo[] | string | boolean | undefined;
 }
 
 interface ProviderValues {
     global: { config: GlobalConfig; update: (configPatch: Partial<GlobalConfig>) => void };
     contextMenu: { config: ContextMenuSettings; update: (newConfig: ContextMenuSettings) => void };
     debugConsole: { value: boolean; update: (value: boolean) => void };
-    pluginLoadOrder: { order: any[]; update: (order: any[]) => void };
-    updateData: { updateData: any; setUpdateData: (data: any) => void };
+    pluginLoadOrder: { order: PluginInfo[]; update: (order: PluginInfo[]) => void };
+    updateData: { updateData: UpdateInfo | null; setUpdateData: (data: UpdateInfo | null) => void };
     notification: {
         errorMessage: string | null;
         setErrorMessage: (msg: string | null) => void;
@@ -46,8 +85,8 @@ interface ProviderValues {
     pluginSource: {
         currentPluginSource: string;
         setCurrentPluginSource: (source: string) => void;
-        cachedPluginIndex: any;
-        setCachedPluginIndex: (index: any) => void;
+        cachedPluginIndex: Record<string, PluginIndexEntry[]> | null;
+        setCachedPluginIndex: (index: Record<string, PluginIndexEntry[]> | null) => void;
     };
 }
 
@@ -71,24 +110,38 @@ const AppProviders = ({ children, values }: { children: ReactNode, values: Provi
 
 export const ConfigApp = () => {
     const [activePage, setActivePage] = useState('context-menu');
-    const [contextMenuConfig, setContextMenuConfig] = useState<any>({});
+    const [contextMenuConfig, setContextMenuConfig] = useState<ContextMenuSettings>({});
     const [debugConsole, setDebugConsole] = useState<boolean>(false);
-    const [pluginLoadOrder, setPluginLoadOrder] = useState<any[]>([]);
-    const [updateData, setUpdateData] = useState<any>(null);
-    const [config, setConfig] = useState<any>({});
+    const [pluginLoadOrder, setPluginLoadOrder] = useState<PluginInfo[]>([]);
+    const [updateData, setUpdateData] = useState<UpdateInfo | null>(null);
+    const [config, setConfig] = useState<GlobalConfig>({});
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [loadingMessage, setLoadingMessage] = useState<string | null>(null);
     const [currentPluginSource, setCurrentPluginSource] = useState<string>('Enlysure');
-    const [cachedPluginIndex, setCachedPluginIndex] = useState<any>(null);
+    const [cachedPluginIndex, setCachedPluginIndex] = useState<Record<string, PluginIndexEntry[]> | null>(null);
 
     useEffect(() => {
-        const current_config_path = shell.breeze.data_directory() + '/config.json';
-        const current_config = shell.fs.read(current_config_path);
-        const parsed = JSON.parse(current_config);
-        setConfig(parsed);
-        setContextMenuConfig(parsed.context_menu || {});
-        setDebugConsole(parsed.debug_console || false);
-        setPluginLoadOrder(parsed.plugin_load_order || []);
+        try {
+            const current_config_path = shell.breeze.data_directory() + '/config.json';
+            const current_config = shell.fs.read(current_config_path);
+            const parsed = JSON.parse(current_config);
+            setConfig(parsed);
+            setContextMenuConfig(parsed.context_menu || {});
+            setDebugConsole(parsed.debug_console || false);
+            setPluginLoadOrder(parsed.plugin_load_order || []);
+        } catch (error) {
+            console.error('Failed to load config:', error);
+            // Use default config on load failure
+            const defaultConfig = {
+                context_menu: {},
+                debug_console: false,
+                plugin_load_order: []
+            };
+            setConfig(defaultConfig);
+            setContextMenuConfig(defaultConfig.context_menu);
+            setDebugConsole(defaultConfig.debug_console);
+            setPluginLoadOrder(defaultConfig.plugin_load_order);
+        }
     }, []);
 
     const updateContextMenu = (newConfig: any) => {
@@ -139,7 +192,7 @@ export const ConfigApp = () => {
 
     return (
         <AppProviders values={providerValues}>
-            <flex horizontal flexGrow={1} autoSize={false} gap={10} alignItems="stretch" width={WINDOW_WIDTH} height={WINDOW_HEIGHT}>
+            <flex horizontal flexGrow={1} gap={10} alignItems="stretch">
                 <Sidebar
                     activePage={activePage}
                     setActivePage={setActivePage}

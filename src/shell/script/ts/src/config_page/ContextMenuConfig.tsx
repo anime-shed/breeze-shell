@@ -73,22 +73,26 @@ const ContextMenuConfig = memo(() => {
             <flex gap={10}>
                 <Text fontSize={18}>{t("settings.animation")}</Text>
                 <flex horizontal gap={10}>
-                    {Object.keys(animation_presets).map(name => (
-                        <Button
-                            key={name}
-                            selected={name === currentAnimationPreset}
-                            onClick={() => {
-                                try {
-                                    const newAnimation = applyPreset(animation_presets[name], config?.theme?.animation, animation_presets);
-                                    update({ ...config, theme: { ...config.theme, animation: Object.keys(newAnimation).length ? newAnimation : undefined } });
-                                } catch (e) {
-                                    shell.println(e);
-                                }
-                            }}
-                        >
-                            <Text fontSize={14}>{t(`animation.${name}`) || name}</Text>
-                        </Button>
-                    ))}
+                    {Object.keys(animation_presets).map(name => {
+                        const cleanAnimation = (animation: Record<string, unknown>) =>
+                            Object.keys(animation).length ? animation : undefined;
+                        return (
+                            <Button
+                                key={name}
+                                selected={name === currentAnimationPreset}
+                                onClick={() => {
+                                    try {
+                                        const newAnimation = applyPreset(animation_presets[name], config?.theme?.animation, animation_presets);
+                                        update({ ...config, theme: { ...config.theme, animation: cleanAnimation(newAnimation) } });
+                                    } catch (e) {
+                                        shell.println(e);
+                                    }
+                                }}
+                            >
+                                <Text fontSize={14}>{t(`animation.${name}`) || name}</Text>
+                            </Button>
+                        );
+                    })}
                 </flex>
             </flex>
 
