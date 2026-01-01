@@ -145,7 +145,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                             const installed = install_path !== null
 
                             const local_version_match = installed ? shell.fs.read(install_path).match(/\/\/ @version:\s*(.*)/) : null
-                            const local_version = local_version_match ? local_version_match[1] : '未安装'
+                            const local_version = local_version_match ? local_version_match[1] : t('plugins.not_installed')
                             const have_update = installed && local_version !== plugin.version
 
                             const disabled = installed && !have_update
@@ -259,7 +259,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                     }
 
                     sub.append_menu({
-                        name: "优先加载插件",
+                        name: t("settings.priority_load_plugins"),
                         submenu(sub) {
                             const plugins = shell.fs.readdir(shell.breeze.data_directory() + '/scripts')
                                 .map(v => v.split('/').pop())
@@ -322,8 +322,8 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                     sub.append_spacer()
 
                     const theme_presets = {
-                        "默认": null,
-                        "紧凑": {
+                        "default": null, // "默认"
+                        "compact": { // "紧凑"
                             radius: 4.0,
                             item_height: 20.0,
                             item_gap: 2.0,
@@ -335,7 +335,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                             right_icon_padding: 16.0,
                             multibutton_line_gap: -4.0
                         },
-                        "宽松": {
+                        "relaxed": { // "宽松"
                             radius: 6.0,
                             item_height: 24.0,
                             item_gap: 4.0,
@@ -347,11 +347,11 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                             right_icon_padding: 20.0,
                             multibutton_line_gap: -6.0
                         },
-                        "圆角": {
+                        "rounded": { // "圆角"
                             radius: 12.0,
                             item_radius: 12.0
                         },
-                        "方角": {
+                        "square": { // "方角"
                             radius: 0.0,
                             item_radius: 0.0
                         }
@@ -361,8 +361,8 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                         easing: "mutation",
                     }
                     const animation_presets = {
-                        "默认": null,
-                        "快速": {
+                        "default": null, // "默认"
+                        "fast": { // "快速"
                             "item": {
                                 "opacity": {
                                     "delay_scale": 0
@@ -380,7 +380,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                 "opacity": anim_none,
                             }
                         },
-                        "无": {
+                        "none": { // "无"
                             "item": {
                                 "opacity": anim_none,
                                 "width": anim_none,
@@ -436,21 +436,22 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                     };
 
                     const getCurrentPreset = (current, presets) => {
-                        if (!current) return "默认";
+                        if (!current) return "default";
                         for (const [name, preset] of Object.entries(presets)) {
                             if (preset && checkPresetMatch(current, preset)) {
                                 return name;
                             }
                         }
-                        return "自定义";
+                        return "custom";
                     };
 
-                    const updateIconStatus = (sub, current, presets) => {
+                    const updateIconStatus = (sub, current, presets, translationPrefix) => {
                         try {
                             const currentPreset = getCurrentPreset(current, presets);
                             for (const _item of sub.get_items()) {
                                 const item = _item.data();
-                                if (item.name === currentPreset) {
+                                // Match translated name
+                                if (item.name === t(translationPrefix + currentPreset)) {
                                     _item.set_data({
                                         icon_svg: ICON_CHECKED_COLORED,
                                         disabled: true
@@ -464,11 +465,12 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                             }
 
                             const lastItem = sub.get_items().pop()
-                            if (lastItem.data().name === "自定义" && currentPreset !== "自定义") {
+                            const customName = t("theme.custom");
+                            if (lastItem.data().name === customName && currentPreset !== "custom") {
                                 lastItem.remove()
-                            } else if (currentPreset === "自定义") {
+                            } else if (currentPreset === "custom") {
                                 sub.append_menu({
-                                    name: "自定义",
+                                    name: customName,
                                     disabled: true,
                                     icon_svg: ICON_CHECKED_COLORED,
                                 });
@@ -479,13 +481,13 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                     }
 
                     sub.append_menu({
-                        name: "主题",
+                        name: t("settings.theme"),
                         submenu(sub) {
                             const currentTheme = config.context_menu?.theme;
 
                             for (const [name, preset] of Object.entries(theme_presets)) {
                                 sub.append_menu({
-                                    name,
+                                    name: t("theme." + name),
                                     action() {
                                         try {
                                             if (!preset) {
@@ -494,7 +496,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                                 config.context_menu.theme = applyPreset(preset, config.context_menu.theme, theme_presets);
                                             }
                                             write_config();
-                                            updateIconStatus(sub, config.context_menu.theme, theme_presets);
+                                            updateIconStatus(sub, config.context_menu.theme, theme_presets, "theme.");
                                         } catch (e) {
                                             shell.println(e, e.stack)
                                         }
@@ -502,18 +504,18 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                 });
                             }
 
-                            updateIconStatus(sub, currentTheme, theme_presets);
+                            updateIconStatus(sub, currentTheme, theme_presets, "theme.");
                         }
                     });
 
                     sub.append_menu({
-                        name: "动画",
+                        name: t("settings.animation"),
                         submenu(sub) {
                             const currentAnimation = config.context_menu?.theme?.animation;
 
                             for (const [name, preset] of Object.entries(animation_presets)) {
                                 sub.append_menu({
-                                    name,
+                                    name: t("animation." + name),
                                     action() {
                                         if (!preset) {
                                             if (config.context_menu?.theme) {
@@ -525,13 +527,13 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                             config.context_menu.theme.animation = preset;
                                         }
 
-                                        updateIconStatus(sub, config.context_menu.theme?.animation, animation_presets);
+                                        updateIconStatus(sub, config.context_menu.theme?.animation, animation_presets, "animation.");
                                         write_config();
                                     }
                                 });
                             }
 
-                            updateIconStatus(sub, currentAnimation, animation_presets);
+                            updateIconStatus(sub, currentAnimation, animation_presets, "animation.");
                         }
                     });
 
