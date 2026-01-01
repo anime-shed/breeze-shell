@@ -15,8 +15,26 @@ const UpdatePage = memo(() => {
     const [exist_old_file, set_exist_old_file] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
+    // Task 1.2.1: Add loading state for update checks
+    const [isChecking, setIsChecking] = useState(false);
+
+    // Task 1.2.5: Add error handling with graceful recovery
     useEffect(() => {
-        set_exist_old_file(shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll'));
+        const checkOldFile = async () => {
+            try {
+                setIsChecking(true);
+                const oldFileExists = await shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll');
+                set_exist_old_file(oldFileExists);
+            } catch (error) {
+                console.error('Error checking for old shell file:', error);
+                set_exist_old_file(false);
+                setErrorMessage(t('update.check_failed', { error: String(error) }));
+            } finally {
+                setIsChecking(false);
+            }
+        };
+
+        checkOldFile();
     }, []);
 
     if (!updateData) {
@@ -25,7 +43,8 @@ const UpdatePage = memo(() => {
 
     const remote_version = updateData.shell.version;
 
-    const updateShell = () => {
+    // Task 1.2.2 & 1.2.3: Make updateShell function async with non-blocking operations
+    const updateShell = async () => {
         if (isUpdating) return;
 
         setIsUpdating(true);
@@ -46,11 +65,15 @@ const UpdatePage = memo(() => {
         };
 
         try {
-            if (shell.fs.exists(shellPath)) {
-                if (shell.fs.exists(shellOldPath)) {
+            // Task 1.2.3: Make file existence checks async
+            const shellExists = await shell.fs.exists(shellPath);
+            const oldShellExists = await shell.fs.exists(shellOldPath);
+
+            if (shellExists) {
+                if (oldShellExists) {
                     try {
-                        shell.fs.remove(shellOldPath);
-                        shell.fs.rename(shellPath, shellOldPath);
+                        await shell.fs.remove(shellOldPath);
+                        await shell.fs.rename(shellPath, shellOldPath);
                         downloadNewShell();
                     } catch (e) {
                         shell.println(t('plugins.update_failed', { error: t('update.cannot_move_file') }));
@@ -58,7 +81,7 @@ const UpdatePage = memo(() => {
                         setErrorMessage(t('plugins.update_failed', { error: t('update.cannot_move_file') }));
                     }
                 } else {
-                    shell.fs.rename(shellPath, shellOldPath);
+                    await shell.fs.rename(shellPath, shellOldPath);
                     downloadNewShell();
                 }
             } else {
@@ -74,15 +97,29 @@ const UpdatePage = memo(() => {
     return (
         <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("update.title")}</Text>
-            <flex gap={10}>
-                <Text>{t("update.current_version", { version: current_version })}</Text>
-                <Text>{t("update.latest_version", { version: remote_version })}</Text>
-                <Button onClick={current_version === remote_version || isUpdating ? () => { } : updateShell}>
-                    <Text>{
-                        isUpdating ? t("plugins.updating") :
-                            exist_old_file ? t("plugins.update_downloaded") : (current_version === remote_version ? (current_version + ' ' + t('common.latest')) : `${current_version} -> ${remote_version}`)}</Text>
-                </Button>
-            </flex>
+
+            {/* Task 1.2.4: Add progress indicator during update checks */}
+            {isChecking && (
+                <flex backgroundColor="rgba(0,0,0,0.1)" padding={10} borderRadius={5} alignItems="center">
+                    <Text fontSize={14}>Checking for updates...</Text>
+                </flex>
+            )}
+
+            {!isChecking && (
+                <flex gap={10}>
+                    <Text>{t("update.current_version", { version: current_version })}</Text>
+                    <Text>{t("update.latest_version", { version: remote_version })}</Text>
+                    <Button
+                        onClick={current_version === remote_version || isUpdating ? () => { } : updateShell}
+                        disabled={isUpdating}
+                    >
+                        <Text>{
+                            isUpdating ? t("plugins.updating") :
+                                exist_old_file ? t("plugins.update_downloaded") : (current_version === remote_version ? (current_version + ' ' + t('common.latest')) : `${current_version} -> ${remote_version}`)}</Text>
+                    </Button>
+                </flex>
+            )}
+
             <flex gap={10} flexGrow={1} alignItems="stretch">
                 <Text>{t("update.changelog")}</Text>
                 <flex enableScrolling={true} flexGrow={1} gap={10} alignItems="stretch">

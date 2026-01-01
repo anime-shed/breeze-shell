@@ -59,7 +59,6 @@ const Sidebar = memo(({
     return (
         <flex
             width={sidebarWidth}
-            flexGrow={1}
             backgroundColor={shell.breeze.is_light_theme() ? '#f0f0f077' : '#40404077'}
             padding={10}
             gap={10}

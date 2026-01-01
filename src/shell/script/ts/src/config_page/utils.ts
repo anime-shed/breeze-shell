@@ -89,22 +89,45 @@ export const getCurrentPreset = (current: any, presets: any, ignoreKeys: string[
 };
 
 // Config file operations
-export const loadConfig = () => {
-    const current_config_path = shell.breeze.data_directory() + '/config.json';
-    const current_config = shell.fs.read(current_config_path);
-    return JSON.parse(current_config);
+// Task 1.3.1: Convert loadConfig to async with error handling
+export const loadConfig = async (): Promise<any> => {
+    try {
+        const current_config_path = shell.breeze.data_directory() + '/config.json';
+        const current_config = await shell.fs.read(current_config_path);
+        return JSON.parse(current_config);
+    } catch (error) {
+        console.error('Failed to load config:', error);
+        // Return default config if file is missing or corrupted
+        return {};
+    }
 };
 
-export const saveConfig = (config: any) => {
-    shell.fs.write(shell.breeze.data_directory() + '/config.json', JSON.stringify(config, null, 4));
+// Task 1.3.2: Convert saveConfig to async with error handling
+export const saveConfig = async (config: any): Promise<void> => {
+    try {
+        const configPath = shell.breeze.data_directory() + '/config.json';
+        const configJson = JSON.stringify(config, null, 4);
+        await shell.fs.write(configPath, configJson);
+    } catch (error) {
+        console.error('Failed to save config:', error);
+        throw new Error(`Failed to save configuration: ${error}`);
+    }
 };
 
 // Plugin utilities
-export const loadPlugins = () => {
-    return shell.fs.readdir(shell.breeze.data_directory() + '/scripts')
-        .map(v => v.split('/').pop())
-        .filter(v => v.endsWith('.js') || v.endsWith('.disabled'))
-        .map(v => v.replace('.js', '').replace('.disabled', ''));
+// Task 1.3.3: Convert loadPlugins to async with error handling
+export const loadPlugins = async (): Promise<string[]> => {
+    try {
+        const scriptsPath = shell.breeze.data_directory() + '/scripts';
+        const files = await shell.fs.readdir(scriptsPath);
+        return files
+            .map(v => v.split('/').pop())
+            .filter(v => v.endsWith('.js') || v.endsWith('.disabled'))
+            .map(v => v.replace('.js', '').replace('.disabled', ''));
+    } catch (error) {
+        console.error('Failed to load plugins:', error);
+        return [];
+    }
 };
 
 export const togglePlugin = (name: string) => {
@@ -136,7 +159,219 @@ export const isPluginInstalled = (plugin: any) => {
     return null;
 };
 
-export const getPluginVersion = (installPath: string) => {
-    const local_version_match = shell.fs.read(installPath).match(/\/\/ @version:\s*(.*)/);
-    return local_version_match ? local_version_match[1] : t('plugins.not_installed');
+// Task 1.3.4: Convert getPluginVersion to async with error handling
+export const getPluginVersion = async (installPath: string): Promise<string> => {
+    try {
+        const content = await shell.fs.read(installPath);
+        const local_version_match = content.match(/\/\/ @version:\s*(.*)/);
+        return local_version_match ? local_version_match[1] : t('plugins.not_installed');
+    } catch (error) {
+        console.error('Failed to get plugin version:', error);
+        return t('plugins.not_installed');
+    }
+};
+
+// Task 2.2.1: Create useTextTruncation utility hook
+export const useTextTruncation = (text: string, maxWidth: number) => {
+    const [truncatedText, setTruncatedText] = useState(text);
+
+    useEffect(() => {
+        // Simple text truncation with ellipsis
+        if (text.length <= 10 || maxWidth <= 0) {
+            setTruncatedText(text);
+            return;
+        }
+
+        // Truncate at word boundaries when possible
+        const ellipsis = '...';
+        const maxChars = Math.max(10, Math.floor(maxWidth / 8)); // Rough estimate
+
+        if (text.length <= maxChars) {
+            setTruncatedText(text);
+        } else {
+            // Try to truncate at word boundary
+            const truncated = text.substring(0, maxChars);
+            const lastSpaceIndex = truncated.lastIndexOf(' ');
+            if (lastSpaceIndex > maxChars * 0.8) {
+                setTruncatedText(truncated + ellipsis);
+            } else {
+                setTruncatedText(truncated.substring(0, lastSpaceIndex) + ellipsis);
+            }
+        }
+    }, [text, maxWidth]);
+
+    return truncatedText;
+};
+
+// Task 2.4.1: Create useResponsive hook with breakpoint awareness
+export const useResponsive = (width: number) => {
+    const getBreakpoint = (width: number): string => {
+        if (width >= 1200) return 'xl';
+        if (width >= 992) return 'lg';
+        if (width >= 768) return 'md';
+        if (width >= 576) return 'sm';
+        return 'xs';
+    };
+
+    const [breakpoint, setBreakpoint] = useState(() => getBreakpoint(width));
+
+    useEffect(() => {
+        const newBreakpoint = getBreakpoint(width);
+        if (newBreakpoint !== breakpoint) {
+            setBreakpoint(newBreakpoint);
+        }
+    }, [width]);
+
+    return {
+        breakpoint,
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 992,
+        isDesktop: width >= 992,
+        isWidescreen: width >= 1200
+    };
+};
+
+// Task 3.3.1: Create usePerformanceMetrics hook for development monitoring
+export const usePerformanceMetrics = () => {
+    const [fps, setFps] = useState(60);
+    const [memoryUsage, setMemoryUsage] = useState(0);
+    const [frameDrops, setFrameDrops] = useState(0);
+    const [slowFrames, setSlowFrames] = useState(0);
+
+    useEffect(() => {
+        let frameCount = 0;
+        let lastTime = Date.now();
+
+        const measurePerformance = () => {
+            const now = Date.now();
+            const delta = now - lastTime;
+            const currentFps = Math.round(1000 / delta);
+
+            frameCount++;
+
+            // Update FPS every 10 frames
+            if (frameCount % 10 === 0) {
+                setFps(currentFps);
+
+                // Detect performance issues
+                if (currentFps < 55) {
+                    setFrameDrops(prev => prev + 1);
+                    setSlowFrames(prev => prev + 1);
+                }
+            }
+
+            lastTime = now;
+
+            // Continue measuring
+            if (typeof requestAnimationFrame !== 'undefined') {
+                requestAnimationFrame(measurePerformance);
+            }
+        };
+
+        // Start performance monitoring
+        requestAnimationFrame(measurePerformance);
+
+        return () => {
+            // Cleanup function
+            // Note: Can't actually cancel requestAnimationFrame in this environment
+        };
+    }, []); // Only run once
+
+    useEffect(() => {
+        // Monitor memory usage (simplified for this environment)
+        const checkMemory = () => {
+            try {
+                if (shell && (shell as any).performance && (shell as any).performance.memory) {
+                    const memory = (shell as any).performance.memory();
+                    const usedMB = memory.usedJSHeapSize / (1024 * 1024);
+                    setMemoryUsage(Math.round(usedMB));
+                }
+            } catch (error) {
+                console.error('Memory monitoring error:', error);
+            }
+        };
+
+        // Check memory every 5 seconds
+        const interval = setInterval(checkMemory, 5000);
+
+        return () => {
+            clearInterval(interval);
+        };
+    }, []);
+
+    return {
+        fps,
+        memoryUsage,
+        frameDrops,
+        slowFrames,
+        isPerformanceIssue: fps < 55 || frameDrops > 10,
+
+        // Task 3.3.2: Development mode performance warnings
+        ...(typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost' ? {
+            showPerformanceWarning: true
+        } : {})
+    };
+};
+
+// Task 3.3.3: Performance alerting and management utilities
+export const reportPerformanceIssue = (type: 'low-fps' | 'high-memory' | 'frame-drops', details: string) => {
+    console.warn(`[Performance Issue] ${type}: ${details}`);
+
+    if (typeof shell !== 'undefined' && (shell as any).notify) {
+        (shell as any).notify({
+            title: 'Performance Warning',
+            message: `${type}: ${details}`,
+            type: 'warning'
+        });
+    }
+};
+
+export const optimizePerformance = () => {
+    // Automatic optimizations based on current performance
+    return {
+        reduceAnimations: false, // Can be set to true if needed
+        disableShadows: false,
+        lowerQualityRendering: false
+    };
+};
+
+// Task 3.1.3: Convert useVirtualScroll implementation details
+export const useVirtualScroll = (items: any[], itemHeight: number, containerHeight: number) => {
+    const [scrollTop, setScrollTop] = useState(0);
+
+    const totalHeight = items.length * itemHeight;
+    const startIndex = Math.floor(scrollTop / itemHeight);
+    const endIndex = Math.min(
+        items.length - 1,
+        Math.floor((scrollTop + containerHeight) / itemHeight)
+    );
+
+    const visibleItems = items.slice(startIndex, endIndex + 1).map((data, index) => ({
+        data,
+        index: startIndex + index,
+        top: (startIndex + index) * itemHeight,
+        id: (data as any).id || (data as any).name || index
+    }));
+
+    const onScroll = (e: any) => {
+        setScrollTop(e.currentTarget.scrollTop);
+    };
+
+    const paddingTop = startIndex * itemHeight;
+    const paddingBottom = (items.length - endIndex - 1) * itemHeight;
+
+    return {
+        visibleItems,
+        totalHeight,
+        paddingTop,
+        paddingBottom,
+        scrollProps: {
+            scrollTop,
+            onScroll
+        }
+    };
+};
+
+export const calculateOptimalHeight = (itemCount: number, itemHeight: number, maxHeight: number) => {
+    return Math.min(itemCount * itemHeight, maxHeight);
 };

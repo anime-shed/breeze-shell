@@ -1,10 +1,36 @@
 import { breeze } from "mshell";
-import { showMenu, useHoverActive } from "./utils";
+import { showMenu, useHoverActive, useTextTruncation } from "./utils";
 import { type ReactNode } from "react";
 import { ICON_MORE_VERT } from "./constants";
 import { t } from "../shared/i18n";
 
 import { useState, useEffect, memo, createContext, useContext, useMemo } from "react";
+
+// Task 1.4.2: Animation queuing system to limit simultaneous animations
+const animationQueue = new Set<string>();
+const MAX_CONCURRENT_ANIMATIONS = 3;
+
+const shouldQueueAnimation = (elementId: string) => {
+    if (animationQueue.size >= MAX_CONCURRENT_ANIMATIONS) {
+        return false; // Skip animation if too many running
+    }
+    animationQueue.add(elementId);
+    setTimeout(() => animationQueue.delete(elementId), 300); // Clear slot after animation
+    return true;
+};
+
+// Task 1.4.3: Frame rate limiting for complex animations
+let lastFrameTime = 0;
+const MIN_FRAME_INTERVAL = 16; // ~60fps
+
+const shouldAnimate = () => {
+    const now = Date.now();
+    if (now - lastFrameTime < MIN_FRAME_INTERVAL) {
+        return false; // Skip this frame to maintain 60fps
+    }
+    lastFrameTime = now;
+    return true;
+};
 
 // Icon element creator
 export const iconElement = (svg: string, width = 14) => (
@@ -33,25 +59,41 @@ export const SimpleMarkdownRender = ({ text, maxWidth }: { text: string, maxWidt
     );
 };
 
+// Task 2.3.1: Update Button component with responsive sizing
 export const Button = memo(({
     onClick,
     children,
-    selected
+    selected,
+    responsive,
+    scale = 1.0,
+    disabled
 }: {
     onClick: () => void;
     children: ReactNode;
     selected?: boolean;
+    responsive?: boolean;
+    scale?: number;
+    disabled?: boolean;
 }) => {
     const isLightTheme = breeze.is_light_theme()
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
+
+    const handleClick = () => {
+        if (!disabled) {
+            onClick();
+        }
+    };
+
     return (
         <flex
-            onClick={onClick}
+            onClick={handleClick}
             backgroundColor={
-                isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
-                    isHovered ? (isLightTheme ? '#e0e0e0cc' : '#606060cc') :
-                        (isLightTheme ? '#f0f0f0cc' : '#404040cc')
+                disabled ? (isLightTheme ? '#e0e0e0aa' : '#404040aa') :
+                    isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
+                        isHovered ? (isLightTheme ? '#e0e0e0cc' : '#606060cc') :
+                            (isLightTheme ? '#f0f0f0cc' : '#404040cc')
             }
+
             borderRadius={8}
             paddingLeft={12}
             paddingRight={12}
@@ -64,10 +106,10 @@ export const Button = memo(({
             gap={6}
             borderWidth={selected ? 2 : 0}
             borderColor="#2979FF"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
+            onMouseEnter={!disabled ? onMouseEnter : undefined}
+            onMouseLeave={!disabled ? onMouseLeave : undefined}
+            onMouseDown={!disabled ? onMouseDown : undefined}
+            onMouseUp={!disabled ? onMouseUp : undefined}
             animatedVars={['.r', '.g', '.b', '.a']}
         >
             {children}
@@ -114,27 +156,35 @@ export const TextButton = memo(({
     );
 });
 
+// Task 2.3.2: Add responsive props to Toggle component
 export const Toggle = ({
     label,
     value,
-    onChange
+    onChange,
+    responsive = false,
+    scale = 1.0
 }: {
     label: string;
     value: boolean;
     onChange: (v: boolean) => void;
+    responsive?: boolean;
+    scale?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
     const {
         isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp
     } = useHoverActive();
 
+    // Generate unique ID for animation queuing
+    const toggleId = `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
+
     return (
         <flex horizontal alignItems="center" gap={10} justifyContent="space-between">
             <Text>{label}</Text>
             <flex
-                width={40}
-                height={20}
-                borderRadius={10}
+                width={responsive ? Math.round(40 * scale) : 40}
+                height={responsive ? Math.round(20 * scale) : 20}
+                borderRadius={responsive ? Math.round(10 * scale) : 10}
                 backgroundColor={value ? '#0078D4' :
                     isHovered ?
                         (isLightTheme ? '#CCCCCCAA' : '#555555AA') :
@@ -142,25 +192,27 @@ export const Toggle = ({
                 justifyContent={value ? 'end' : 'start'}
                 horizontal
                 alignItems="center"
-                onClick={() => onChange(!value)}
+                onClick={() => shouldAnimate() && onChange(!value)}
                 autoSize={false}
-                onMouseEnter={onMouseEnter}
                 padding={
                     (isHovered || isActive) ? 2 : 3
                 }
+                onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
-                animatedVars={['.r', '.g', '.b', '.a']}
+                // Task 1.4.2: Apply animation queuing
+                animatedVars={shouldQueueAnimation(toggleId) ? ['.r', '.a'] : []}
                 borderWidth={0.5}
                 borderColor={value ? '#00000000' : (isLightTheme ? '#5A5A5A5' : '#CECDD0')}
             >
                 <flex
-                    width={isActive ? 19 : isHovered ? 16 : 14}
-                    height={(isHovered || isActive) ? 16 : 14}
-                    borderRadius={8}
+                    width={responsive ? Math.round((isActive ? 19 : isHovered ? 16 : 14) * scale) : (isActive ? 19 : isHovered ? 16 : 14)}
+                    height={responsive ? Math.round(((isHovered || isActive) ? 16 : 14) * scale) : ((isHovered || isActive) ? 16 : 14)}
+                    borderRadius={responsive ? Math.round(8 * scale) : 8}
                     backgroundColor={value ? (isLightTheme ? '#FFFFFF' : '#000000') : (isLightTheme ? '#5A5A5A' : '#CECDD0')}
-                    animatedVars={['x', 'width', 'height']}
+                    // Task 1.4.3: Apply frame rate limiting
+                    animatedVars={shouldAnimate() && shouldQueueAnimation(toggleId + '-thumb') ? ['x'] : []}
                     autoSize={false}
                 />
             </flex>
@@ -168,16 +220,21 @@ export const Toggle = ({
     );
 }
 
+// Task 2.3.3: Add responsive props to SidebarItem
 export const SidebarItem = memo(({
     onClick,
     icon,
     isActive,
-    children
+    children,
+    responsive = false,
+    scale = 1.0
 }: {
     onClick: () => void;
     icon: string;
     isActive: boolean;
     children: string;
+    responsive?: boolean;
+    scale?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
     const { isHovered, isActive: isPressed, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
@@ -195,7 +252,7 @@ export const SidebarItem = memo(({
             paddingTop={8}
             paddingBottom={8}
             autoSize={false}
-            height={32}
+            height={responsive ? Math.round(32 * scale) : 32}
             justifyContent="start"
             alignItems="center"
             horizontal
@@ -240,7 +297,7 @@ export const PluginCheckbox = memo(({ isEnabled, onToggle }: { isEnabled: boolea
         >
             {isEnabled ? (
                 <img
-                    svg={`<svg viewBox="0 0 24 24"><path fill="${isLightTheme ? '#000000' : '#FFFFFF'}" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`}
+                    svg={`<svg viewBox="0 0 24 24"><path fill="${isLightTheme ? '#000000' : '#FFFFFF'}" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 17.59 13.41 12z"/></svg>`}
                     width={14}
                     height={14}
                 />
@@ -251,14 +308,14 @@ export const PluginCheckbox = memo(({ isEnabled, onToggle }: { isEnabled: boolea
     );
 });
 
-export const PluginMoreButton = memo(({ onClick }: { onClick: () => void }) => {
+export const PluginMoreButton = memo(({ onClick, responsive = false, scale = 1.0 }: { onClick: () => void; responsive?: boolean; scale?: number; }) => {
     const isLightTheme = breeze.is_light_theme();
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
     return (
         <flex
-            width={32}
-            height={32}
-            borderRadius={16}
+            width={responsive ? Math.round(32 * scale) : 32}
+            height={responsive ? Math.round(32 * scale) : 32}
+            borderRadius={responsive ? Math.round(16 * scale) : 16}
             justifyContent="center"
             alignItems="center"
             backgroundColor={isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
@@ -306,8 +363,9 @@ export const PluginItem = memo(({
                 autoSize={false}
             />
             <flex flexGrow={1}>
-                <Text fontSize={14}>
-                    {name}
+                {/* Task 2.2.3: Add text truncation for plugin names */}
+                <Text fontSize={14} maxWidth={200}>
+                    {useTextTruncation(name, 200)}
                 </Text>
                 {isPrioritized && (
                     <flex padding={4}>
