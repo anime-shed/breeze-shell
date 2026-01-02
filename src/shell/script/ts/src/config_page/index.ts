@@ -42,6 +42,7 @@ export {
     getCurrentPreset,
     loadConfig,
     saveConfig,
+    saveConfigDebounced,
     loadPlugins as reloadPlugins,
     togglePlugin,
     deletePlugin,

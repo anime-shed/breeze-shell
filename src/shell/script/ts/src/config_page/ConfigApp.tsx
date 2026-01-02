@@ -1,7 +1,7 @@
 import * as shell from "mshell";
 import { Button, Text } from "./components";
 import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, RESPONSIVE_SPACING } from "./constants";
-import { saveConfig, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
+import { saveConfigDebounced, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
 import {
     ContextMenuContext,
     DebugConsoleContext,
@@ -264,21 +264,21 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         setContextMenuConfig(newConfig);
         const newGlobal = { ...config, context_menu: newConfig };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        saveConfigDebounced(newGlobal);
     };
 
     const updateDebugConsole = (value: boolean) => {
         setDebugConsole(value);
         const newGlobal = { ...config, debug_console: value };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        saveConfigDebounced(newGlobal);
     };
 
     const updatePluginLoadOrder = (order: PluginInfo[]) => {
         setPluginLoadOrder(order);
         const newGlobal = { ...config, plugin_load_order: order };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        saveConfigDebounced(newGlobal);
     };
 
     const updateGlobalConfig = (configPatch: Partial<GlobalConfig>) => {
@@ -293,14 +293,17 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         if ('plugin_load_order' in configPatch) {
             setPluginLoadOrder(configPatch.plugin_load_order || []);
         }
-        saveConfig(newGlobal);
+        saveConfigDebounced(newGlobal);
     };
 
     const updatePluginSource = (source: string) => {
+        if (config.plugin_source === source) {
+            return;
+        }
         setCurrentPluginSource(source);
         const newGlobal = { ...config, plugin_source: source };
         setConfig(newGlobal);
-        saveConfig(newGlobal);
+        saveConfigDebounced(newGlobal);
     };
 
     const providerValues = {

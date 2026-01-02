@@ -12,6 +12,7 @@ import {
 } from "./constants";
 import { UpdateDataContext, NotificationContext, PluginSourceContext } from "./contexts";
 import { useTranslation } from "./utils";
+import { get_async as fetchAsync } from "../utils/network";
 
 const Sidebar = memo(({
     activePage,
@@ -40,14 +41,25 @@ const Sidebar = memo(({
         updatePluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
-
-        shell.network.get_async(PLUGIN_SOURCES[sourceName] + 'plugins-index.json', (data: string) => {
-            setCachedPluginIndex(data);
-            setUpdateData(JSON.parse(data));
+        const url = PLUGIN_SOURCES[sourceName] + 'plugins-index.json';
+        const timeout = shell.infra.setTimeout(() => {
+            setErrorMessage(t("common.load_failed"));
             setLoadingMessage(null);
-        }, (e: any) => {
+        }, 10000);
+        fetchAsync(url).then((data: string) => {
+            try {
+                const json = JSON.parse(data);
+                setCachedPluginIndex(json);
+                setUpdateData(json);
+            } catch (e) {
+                shell.println('Failed to parse update data:', e as any);
+                setErrorMessage(t("common.load_failed"));
+            }
+        }).catch((e: any) => {
             shell.println('Failed to fetch update data:', e);
             setErrorMessage(t("common.load_failed"));
+        }).finally(() => {
+            shell.infra.clearTimeout(timeout);
             setLoadingMessage(null);
         });
     }, [updatePluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);

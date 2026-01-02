@@ -106,6 +106,15 @@ export const saveConfig = (config: any): void => {
     try {
         const configPath = shell.breeze.data_directory() + '/config.json';
         const configJson = JSON.stringify(config, null, 4);
+        try {
+            if (shell.fs.exists(configPath)) {
+                const existing = shell.fs.read(configPath);
+                if (existing === configJson) {
+                    return;
+                }
+            }
+        } catch {
+        }
         shell.fs.write(configPath, configJson);
     } catch (error) {
         console.error('Failed to save config:', error);
@@ -113,6 +122,17 @@ export const saveConfig = (config: any): void => {
     }
 };
 
+let _saveTimer: ReturnType<typeof shell.infra.setTimeout> | null = null;
+export const saveConfigDebounced = (config: any, delayMs: number = 500): void => {
+    if (_saveTimer !== null) {
+        shell.infra.clearTimeout(_saveTimer);
+        _saveTimer = null;
+    }
+    _saveTimer = shell.infra.setTimeout(() => {
+        _saveTimer = null;
+        saveConfig(config);
+    }, delayMs);
+};
 // Plugin utilities
 
 export const loadPlugins = (): string[] => {
