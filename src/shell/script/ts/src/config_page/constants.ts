@@ -1,4 +1,4 @@
-import * as shell from "mshell";
+
 
 // Note: Legacy local languages table removed. Use unified i18n system via shell.breeze and t() utility.
 
@@ -17,10 +17,27 @@ export const ICON_MORE_VERT = `<svg viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.
 export const ICON_BREEZE = `<svg focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M14.5 17c0 1.65-1.35 3-3 3s-3-1.35-3-3h2c0 .55.45 1 1 1s1-.45 1-1-.45-1-1-1H2v-2h9.5c1.65 0 3 1.35 3 3M19 6.5C19 4.57 17.43 3 15.5 3S12 4.57 12 6.5h2c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5S16.33 8 15.5 8H2v2h13.5c1.93 0 3.5-1.57 3.5-3.5m-.5 4.5H2v2h16.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5v2c1.93 0 3.5-1.57 3.5-3.5S20.43 11 18.5 11"></path></svg>`;
 
 
-// Window dimensions
+// Window dimensions (kept for backwards compatibility)
 export const WINDOW_WIDTH = 800;
 export const WINDOW_HEIGHT = 600;
 export const SIDEBAR_WIDTH = 170;
+
+
+export const BREAKPOINTS = {
+    xs: 0,      // Extra small screens (mobile)
+    sm: 576,    // Small screens (large mobile)
+    md: 768,    // Medium screens (tablets)
+    lg: 992,    // Large screens (desktop)
+    xl: 1200    // Extra large screens (wide desktop)
+};
+
+export const RESPONSIVE_SPACING = {
+    xs: 8,
+    sm: 10,
+    md: 16,
+    lg: 20,
+    xl: 24
+};
 
 // Theme presets
 export const theme_presets = {
@@ -98,6 +115,7 @@ export const animation_presets = {
             "w": anim_none,
             "h": anim_none
         },
+
         "main_bg": {
             "opacity": anim_none,
             "x": anim_none,
@@ -106,4 +124,13 @@ export const animation_presets = {
             "h": anim_none
         }
     }
+};
+
+
+export const PERFORMANCE = {
+    FRAME_BUDGET_MS: 16.6, // 60fps
+    LOW_FPS_THRESHOLD: 45,
+    MAX_CACHE_SIZE: 100,
+    MEMORY_CHECK_INTERVAL_MS: 5000,
+    VIRTUAL_SCROLL_THRESHOLD: 50
 };

@@ -150,6 +150,10 @@ const componentMap = {
         creator: shell.breeze_ui.widgets_factory.create_image_widget,
         props: {
             svg: getSetFactory('svg'),
+            alt: {
+                set: (_instance: shell.breeze_ui.js_widget, _value: any) => { },
+                get: (_instance: shell.breeze_ui.js_widget) => ''
+            },
             ...commonProps
         }
     },
@@ -206,7 +210,7 @@ const HostConfig: Reconciler.HostConfig<
         return null;
     },
 
-    resetAfterCommit(rootContainer: RootContainer): void {
+    resetAfterCommit(_rootContainer: RootContainer): void {
 
     },
 
@@ -271,7 +275,7 @@ const HostConfig: Reconciler.HostConfig<
         return Object.keys(updates).length > 0 ? updates : null;
     },
 
-    shouldSetTextContent(type: Type, props: Props): boolean {
+    shouldSetTextContent(_type: Type, _props: Props): boolean {
         return false;
     },
     createTextInstance(
@@ -338,7 +342,7 @@ const HostConfig: Reconciler.HostConfig<
         type: Type,
         oldProps: Props,
         newProps: Props,
-        internalHandle: any
+        _internalHandle: any
     ): void {
         for (const key in newProps) {
             if (key === 'children') {
@@ -413,19 +417,30 @@ const HostConfig: Reconciler.HostConfig<
 const reconciler = Reconciler(HostConfig);
 
 export const createRenderer = (host: shell.breeze_ui.js_flex_layout_widget) => {
+    let container: any = null;
+
     return {
         render: (element: React.ReactElement) => {
-            const container = reconciler.createContainer(
-                host,
-                0,
-                null, // hydrationCallbacks
-                false, // isStrictMode
-                null, // concurrentUpdatesByDefaultOverride
-                '',   // identifierPrefix
-                (error) => console.error(error), // onRecoverableError
-                null  // transitionCallbacks
-            );
+            if (!container) {
+                container = reconciler.createContainer(
+                    host,
+                    0,
+                    null, // hydrationCallbacks
+                    false, // isStrictMode
+                    null, // concurrentUpdatesByDefaultOverride
+                    '',   // identifierPrefix
+                    (error) => console.error(error), // onRecoverableError
+                    null  // transitionCallbacks
+                );
+            }
             reconciler.updateContainer(element, container, null, null);
+        },
+        update: (element: React.ReactElement) => {
+            if (container) {
+                reconciler.updateContainer(element, container, null, null);
+            } else {
+                console.warn("Renderer: update called before render");
+            }
         }
     };
 };

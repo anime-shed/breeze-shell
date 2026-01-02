@@ -2,32 +2,65 @@ import * as shell from "mshell";
 import { showMenu } from "./utils";
 import { Text, PluginItem } from "./components";
 import { PluginLoadOrderContext } from "./contexts";
-import { useTranslation, loadPlugins, togglePlugin, deletePlugin } from "./utils";
-import { memo, useContext, useEffect, useState } from "react";
+import { useTranslation, loadPlugins, togglePlugin, deletePlugin, } from "./utils";
+import { memo, useContext, useEffect, useState, useCallback, useRef } from "react";
 
 const PluginConfig = memo(() => {
     const { order, update } = useContext(PluginLoadOrderContext)!;
     const { t } = useTranslation();
 
     const [installedPlugins, setInstalledPlugins] = useState<string[]>([]);
+    const [enabledPlugins, setEnabledPlugins] = useState<Set<string>>(new Set());
+
+    const [loading, setLoading] = useState(false);
+    const loadingRef = useRef(false);
+
+    const reloadPluginsList = useCallback(async () => {
+        if (loadingRef.current) return; // Prevent concurrent reloads
+        loadingRef.current = true;
+        setLoading(true);
+        // Allow UI to render loading state
+        await new Promise(r => setTimeout(r, 0));
+
+        try {
+            const plugins = await loadPlugins();
+            setInstalledPlugins(plugins);
+
+            const enabled = new Set<string>();
+            let count = 0;
+            for (const name of plugins) {
+                if (count++ % 50 === 0) await new Promise(r => setTimeout(r, 0));
+
+                try {
+                    const path = shell.breeze.data_directory() + '/scripts/' + name + '.js';
+                    if (shell.fs.exists(path)) {
+                        enabled.add(name);
+                    }
+                } catch (err) {
+                    console.error(`Failed to check plugin ${name}:`, err);
+                }
+            }
+            setEnabledPlugins(enabled);
+        } catch (error) {
+            console.error('Failed to reload plugins list:', error);
+        } finally {
+            loadingRef.current = false;
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
         reloadPluginsList();
-    }, []);
+    }, [reloadPluginsList]);
 
-    const reloadPluginsList = () => {
-        const plugins = loadPlugins();
-        setInstalledPlugins(plugins);
-    };
-
-    const handleTogglePlugin = (name: string) => {
+    const handleTogglePlugin = async (name: string) => {
         togglePlugin(name);
-        reloadPluginsList();
+        await reloadPluginsList();
     };
 
-    const handleDeletePlugin = (name: string) => {
+    const handleDeletePlugin = async (name: string) => {
         deletePlugin(name);
-        reloadPluginsList();
+        await reloadPluginsList();
     };
 
     const isPrioritized = (name: string) => {
@@ -71,15 +104,16 @@ const PluginConfig = memo(() => {
     const regularPlugins = installedPlugins.filter(name => !isPrioritized(name));
 
     return (
-        <flex gap={20} width={580} height={550} autoSize={false} alignItems="stretch">
+        <flex gap={20} flexGrow={1} alignItems="stretch">
             <Text fontSize={24}>{t("plugins.config")}</Text>
+            {loading && <Text>{t("common.loading")}</Text>}
 
-            <flex enableScrolling maxHeight={500} alignItems="stretch">
+            <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
                 {prioritizedPlugins.length > 0 && (
                     <flex gap={10} alignItems="stretch" paddingBottom={10} paddingTop={10}>
                         <Text fontSize={16}>{t("plugins.priority_load")}</Text>
                         {prioritizedPlugins.map(name => {
-                            const isEnabled = shell.fs.exists(shell.breeze.data_directory() + '/scripts/' + name + '.js');
+                            const isEnabled = enabledPlugins.has(name);
                             return (
                                 <PluginItem
                                     key={name}
@@ -98,7 +132,7 @@ const PluginConfig = memo(() => {
                 <flex gap={10} alignItems="stretch">
                     {prioritizedPlugins.length === 0 && <Text fontSize={16}>{t("plugins.installed_plugins")}</Text>}
                     {regularPlugins.map(name => {
-                        const isEnabled = shell.fs.exists(shell.breeze.data_directory() + '/scripts/' + name + '.js');
+                        const isEnabled = enabledPlugins.has(name);
                         return (
                             <PluginItem
                                 key={name}

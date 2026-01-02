@@ -17,6 +17,8 @@ async function build() {
 import * as __mshell from "mshell";
 const setTimeout = __mshell.infra.setTimeout;
 const clearTimeout = __mshell.infra.clearTimeout;
+const setInterval = __mshell.infra.setInterval;
+const clearInterval = __mshell.infra.clearInterval;
 `
       },
       jsx: "transform",

@@ -3,9 +3,9 @@ import { PLUGIN_SOURCES } from "../plugin/constants"
 import { get_async } from "../utils/network"
 import { splitIntoLines } from "../utils/string"
 import { getNestedValue, setNestedValue } from "../utils/object"
-import { config_dir_watch_callbacks } from "../plugin/core"
-import { languages, ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
-import { t, currentLanguage } from "../shared/i18n"
+
+import { ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
+import { t } from "../shared/i18n"
 
 let cached_plugin_index: any = null
 
@@ -13,15 +13,15 @@ let cached_plugin_index: any = null
 if (shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll')) {
     try {
         shell.fs.remove(shell.breeze.data_directory() + '/shell_old.dll')
-    } catch (e) {
-        shell.println('Failed to remove old shell.dll: ', e)
+    } catch (_e) {
+        shell.println('Failed to remove old shell.dll: ', _e)
     }
 }
 
 let current_source = 'Enlysure'
 
 export const makeBreezeConfigMenu = (mainMenu) => {
-    const currentLang = currentLanguage()
+    
 
     const fg_color = shell.breeze.is_light_theme() ? 'black' : 'white'
     const ICON_CHECKED_COLORED = ICON_CHECKED.replaceAll('currentColor', fg_color)
@@ -99,7 +99,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                                 downloadNewShell()
                                             } catch (e) {
                                                 upd.set_data({
-                                                    name: t('status.updateFailed') + ': ' + t('error.cannotMoveFile'),
+                                                    name: t('status.updateFailed') + ': ' + e,
                                                     icon_svg: ICON_REPAIR_COLORED,
                                                     disabled: false
                                                 })

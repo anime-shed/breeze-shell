@@ -26,7 +26,7 @@ export const NotificationContext = createContext<{
 // Context for plugin source management
 export const PluginSourceContext = createContext<{
     currentPluginSource: string;
-    setCurrentPluginSource: (source: string) => void;
+    updatePluginSource: (source: string) => void;
     cachedPluginIndex: any;
     setCachedPluginIndex: (index: any) => void;
 } | null>(null);

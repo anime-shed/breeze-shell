@@ -1,10 +1,10 @@
 import { breeze } from "mshell";
-import { showMenu, useHoverActive } from "./utils";
+import { useHoverActive, useTextTruncation } from "./utils";
 import { type ReactNode } from "react";
 import { ICON_MORE_VERT } from "./constants";
 import { t } from "../shared/i18n";
 
-import { useState, useEffect, memo, createContext, useContext, useMemo } from "react";
+import { memo, } from "react";
 
 // Icon element creator
 export const iconElement = (svg: string, width = 14) => (
@@ -15,6 +15,7 @@ export const iconElement = (svg: string, width = 14) => (
         )}
         width={width}
         height={width}
+        alt=""
     />
 );
 
@@ -33,41 +34,57 @@ export const SimpleMarkdownRender = ({ text, maxWidth }: { text: string, maxWidt
     );
 };
 
+
 export const Button = memo(({
     onClick,
     children,
-    selected
+    selected,
+    responsive,
+    scale = 1.0,
+    disabled
 }: {
     onClick: () => void;
     children: ReactNode;
     selected?: boolean;
+    responsive?: boolean;
+    scale?: number;
+    disabled?: boolean;
 }) => {
     const isLightTheme = breeze.is_light_theme()
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
+
+    const handleClick = () => {
+        if (!disabled) {
+            onClick();
+        }
+    };
+
     return (
         <flex
-            onClick={onClick}
+            onClick={handleClick}
             backgroundColor={
-                isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
-                    isHovered ? (isLightTheme ? '#e0e0e0cc' : '#606060cc') :
-                        (isLightTheme ? '#f0f0f0cc' : '#404040cc')
+                disabled ? (isLightTheme ? '#e0e0e0aa' : '#404040aa') :
+                    isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
+                        isHovered ? (isLightTheme ? '#e0e0e0cc' : '#606060cc') :
+                            (isLightTheme ? '#f0f0f0cc' : '#404040cc')
             }
-            borderRadius={8}
-            paddingLeft={12}
-            paddingRight={12}
-            paddingTop={8}
-            paddingBottom={8}
+
+            borderRadius={responsive ? Math.round(8 * scale) : 8}
+            paddingLeft={responsive ? Math.round(12 * scale) : 12}
+            paddingRight={responsive ? Math.round(12 * scale) : 12}
+            paddingTop={responsive ? Math.round(8 * scale) : 8}
+            paddingBottom={responsive ? Math.round(8 * scale) : 8}
             autoSize={true}
             justifyContent="center"
             alignItems="center"
             horizontal
-            gap={6}
-            borderWidth={selected ? 2 : 0}
+            gap={responsive ? Math.round(6 * scale) : 6}
+            borderWidth={selected ? (responsive ? Math.round(2 * scale) : 2) : 0}
             borderColor="#2979FF"
-            onMouseEnter={onMouseEnter}
-            onMouseLeave={onMouseLeave}
-            onMouseDown={onMouseDown}
-            onMouseUp={onMouseUp}
+            onMouseEnter={!disabled ? onMouseEnter : undefined}
+            onMouseLeave={!disabled ? onMouseLeave : undefined}
+            onMouseDown={!disabled ? onMouseDown : undefined}
+            onMouseUp={!disabled ? onMouseUp : undefined}
             animatedVars={['.r', '.g', '.b', '.a']}
         >
             {children}
@@ -85,13 +102,18 @@ export const Text = memo(({
     maxWidth?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
+    // Only pass maxWidth if it's non-negative, assuming -1 or negative might be problematic for the native widget setter
+    const textProps: any = {
+        text: children,
+        fontSize: fontSize,
+        color: isLightTheme ? '#000000ff' : '#ffffffff'
+    };
+    if (maxWidth >= 0) {
+        textProps.maxWidth = maxWidth;
+    }
+    
     return (
-        <text
-            text={children}
-            fontSize={fontSize}
-            maxWidth={maxWidth}
-            color={isLightTheme ? '#000000ff' : '#ffffffff'}
-        />
+        <text {...textProps} />
     );
 });
 
@@ -114,27 +136,34 @@ export const TextButton = memo(({
     );
 });
 
+
 export const Toggle = ({
     label,
     value,
-    onChange
+    onChange,
+    responsive = false,
+    scale = 1.0
 }: {
     label: string;
     value: boolean;
     onChange: (v: boolean) => void;
+    responsive?: boolean;
+    scale?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
     const {
         isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp
     } = useHoverActive();
+    const bgAnimatedVars = ['.r', '.a'];
+    const thumbAnimatedVars = ['x'];
 
     return (
         <flex horizontal alignItems="center" gap={10} justifyContent="space-between">
             <Text>{label}</Text>
             <flex
-                width={40}
-                height={20}
-                borderRadius={10}
+                width={responsive ? Math.round(40 * scale) : 40}
+                height={responsive ? Math.round(20 * scale) : 20}
+                borderRadius={responsive ? Math.round(10 * scale) : 10}
                 backgroundColor={value ? '#0078D4' :
                     isHovered ?
                         (isLightTheme ? '#CCCCCCAA' : '#555555AA') :
@@ -142,25 +171,30 @@ export const Toggle = ({
                 justifyContent={value ? 'end' : 'start'}
                 horizontal
                 alignItems="center"
-                onClick={() => onChange(!value)}
+                onClick={() => {
+                    // Always update state - never discard user input
+                    onChange(!value);
+                }}
                 autoSize={false}
-                onMouseEnter={onMouseEnter}
                 padding={
                     (isHovered || isActive) ? 2 : 3
                 }
+                onMouseEnter={onMouseEnter}
                 onMouseLeave={onMouseLeave}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
-                animatedVars={['.r', '.g', '.b', '.a']}
+
+                animatedVars={bgAnimatedVars}
                 borderWidth={0.5}
                 borderColor={value ? '#00000000' : (isLightTheme ? '#5A5A5A5' : '#CECDD0')}
             >
                 <flex
-                    width={isActive ? 19 : isHovered ? 16 : 14}
-                    height={(isHovered || isActive) ? 16 : 14}
-                    borderRadius={8}
+                    width={responsive ? Math.round((isActive ? 19 : isHovered ? 16 : 14) * scale) : (isActive ? 19 : isHovered ? 16 : 14)}
+                    height={responsive ? Math.round(((isHovered || isActive) ? 16 : 14) * scale) : ((isHovered || isActive) ? 16 : 14)}
+                    borderRadius={responsive ? Math.round(8 * scale) : 8}
                     backgroundColor={value ? (isLightTheme ? '#FFFFFF' : '#000000') : (isLightTheme ? '#5A5A5A' : '#CECDD0')}
-                    animatedVars={['x', 'width', 'height']}
+
+                    animatedVars={thumbAnimatedVars}
                     autoSize={false}
                 />
             </flex>
@@ -168,16 +202,21 @@ export const Toggle = ({
     );
 }
 
+
 export const SidebarItem = memo(({
     onClick,
     icon,
     isActive,
-    children
+    children,
+    responsive = false,
+    scale = 1.0
 }: {
     onClick: () => void;
     icon: string;
     isActive: boolean;
     children: string;
+    responsive?: boolean;
+    scale?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
     const { isHovered, isActive: isPressed, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
@@ -195,7 +234,7 @@ export const SidebarItem = memo(({
             paddingTop={8}
             paddingBottom={8}
             autoSize={false}
-            height={32}
+            height={responsive ? Math.round(32 * scale) : 32}
             justifyContent="start"
             alignItems="center"
             horizontal
@@ -240,9 +279,10 @@ export const PluginCheckbox = memo(({ isEnabled, onToggle }: { isEnabled: boolea
         >
             {isEnabled ? (
                 <img
-                    svg={`<svg viewBox="0 0 24 24"><path fill="${isLightTheme ? '#000000' : '#FFFFFF'}" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>`}
+                    svg={`<svg viewBox="0 0 24 24"><path fill="${isLightTheme ? '#000000' : '#FFFFFF'}" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 17.59 13.41 12z"/></svg>`}
                     width={14}
                     height={14}
+                    alt=""
                 />
             ) : (
                 <flex width={14} height={14} autoSize={false} />
@@ -251,14 +291,14 @@ export const PluginCheckbox = memo(({ isEnabled, onToggle }: { isEnabled: boolea
     );
 });
 
-export const PluginMoreButton = memo(({ onClick }: { onClick: () => void }) => {
+export const PluginMoreButton = memo(({ onClick, responsive = false, scale = 1.0 }: { onClick: () => void; responsive?: boolean; scale?: number; }) => {
     const isLightTheme = breeze.is_light_theme();
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
     return (
         <flex
-            width={32}
-            height={32}
-            borderRadius={16}
+            width={responsive ? Math.round(32 * scale) : 32}
+            height={responsive ? Math.round(32 * scale) : 32}
+            borderRadius={responsive ? Math.round(16 * scale) : 16}
             justifyContent="center"
             alignItems="center"
             backgroundColor={isActive ? (isLightTheme ? '#c0c0c0cc' : '#505050cc') :
@@ -289,7 +329,9 @@ export const PluginItem = memo(({
     onToggle: () => void;
     onMoreClick: (name: string) => void;
 }) => {
-    const isLightTheme = breeze.is_light_theme();
+    // Move hook call to top level
+    const truncatedName = useTextTruncation(name, 200);
+
     return (
         <flex
             horizontal
@@ -306,8 +348,9 @@ export const PluginItem = memo(({
                 autoSize={false}
             />
             <flex flexGrow={1}>
-                <Text fontSize={14}>
-                    {name}
+                {/* Task 2.2.3: Add text truncation for plugin names */}
+                <Text fontSize={14} maxWidth={200}>
+                    {truncatedName}
                 </Text>
                 {isPrioritized && (
                     <flex padding={4}>
