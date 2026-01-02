@@ -1,5 +1,5 @@
 import * as shell from "mshell";
-import { Button, Text } from "./components";
+import { Button, Text, cleanupAnimations } from "./components";
 import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, RESPONSIVE_SPACING } from "./constants";
 import { saveConfig, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
 import {
@@ -74,6 +74,7 @@ interface GlobalConfig {
     debug_console?: boolean;
     plugin_load_order?: PluginInfo[];
     language?: string;
+    plugin_source?: string;
     // Allow additional properties for flexible configuration
     [key: string]: ContextMenuSettings | PluginInfo[] | string | boolean | undefined;
 }
@@ -92,7 +93,7 @@ interface ProviderValues {
     };
     pluginSource: {
         currentPluginSource: string;
-        setCurrentPluginSource: (source: string) => void;
+        updatePluginSource: (source: string) => void;
         cachedPluginIndex: Record<string, PluginIndexEntry[]> | null;
         setCachedPluginIndex: (index: Record<string, PluginIndexEntry[]> | null) => void;
     };
@@ -148,12 +149,15 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
             setIsLoading(true);
             setConfigError(null);
 
-            const parsed = await loadConfig();
+            const parsed = loadConfig();
 
             setConfig(parsed);
             setContextMenuConfig(parsed.context_menu || {});
             setDebugConsole(parsed.debug_console || false);
             setPluginLoadOrder(parsed.plugin_load_order || []);
+            if (parsed.plugin_source) {
+                setCurrentPluginSource(parsed.plugin_source);
+            }
 
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
@@ -166,6 +170,9 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
             setContextMenuConfig(DEFAULT_CONFIG.context_menu || {});
             setDebugConsole(DEFAULT_CONFIG.debug_console || false);
             setPluginLoadOrder(DEFAULT_CONFIG.plugin_load_order || []);
+            if (DEFAULT_CONFIG.plugin_source) {
+                setCurrentPluginSource(DEFAULT_CONFIG.plugin_source);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -224,29 +231,36 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         return () => { };
     }, [handleResize]);
 
-    // Task 1.3.5: Update callers to handle async functions
-    const updateContextMenu = async (newConfig: ContextMenuSettings) => {
+    // Cleanup animations when component unmounts
+    useEffect(() => {
+        return () => {
+            cleanupAnimations();
+        };
+    }, []);
+
+    // Task 1.3.5: Update callers to handle sync functions
+    const updateContextMenu = (newConfig: ContextMenuSettings) => {
         setContextMenuConfig(newConfig);
         const newGlobal = { ...config, context_menu: newConfig };
         setConfig(newGlobal);
-        await saveConfig(newGlobal);
+        saveConfig(newGlobal);
     };
 
-    const updateDebugConsole = async (value: boolean) => {
+    const updateDebugConsole = (value: boolean) => {
         setDebugConsole(value);
         const newGlobal = { ...config, debug_console: value };
         setConfig(newGlobal);
-        await saveConfig(newGlobal);
+        saveConfig(newGlobal);
     };
 
-    const updatePluginLoadOrder = async (order: PluginInfo[]) => {
+    const updatePluginLoadOrder = (order: PluginInfo[]) => {
         setPluginLoadOrder(order);
         const newGlobal = { ...config, plugin_load_order: order };
         setConfig(newGlobal);
-        await saveConfig(newGlobal);
+        saveConfig(newGlobal);
     };
 
-    const updateGlobalConfig = async (configPatch: Partial<GlobalConfig>) => {
+    const updateGlobalConfig = (configPatch: Partial<GlobalConfig>) => {
         const newGlobal = { ...config, ...configPatch };
         setConfig(newGlobal);
         if ('context_menu' in configPatch) {
@@ -258,7 +272,14 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         if ('plugin_load_order' in configPatch) {
             setPluginLoadOrder(configPatch.plugin_load_order || []);
         }
-        await saveConfig(newGlobal);
+        saveConfig(newGlobal);
+    };
+
+    const updatePluginSource = (source: string) => {
+        setCurrentPluginSource(source);
+        const newGlobal = { ...config, plugin_source: source };
+        setConfig(newGlobal);
+        saveConfig(newGlobal);
     };
 
     const providerValues = {
@@ -268,7 +289,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         pluginLoadOrder: { order: pluginLoadOrder, update: updatePluginLoadOrder },
         updateData: { updateData, setUpdateData },
         notification: { errorMessage, setErrorMessage, loadingMessage, setLoadingMessage },
-        pluginSource: { currentPluginSource, setCurrentPluginSource, cachedPluginIndex, setCachedPluginIndex }
+        pluginSource: { currentPluginSource, updatePluginSource, cachedPluginIndex, setCachedPluginIndex }
     };
 
     return (

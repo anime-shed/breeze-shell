@@ -150,6 +150,7 @@ const componentMap = {
         creator: shell.breeze_ui.widgets_factory.create_image_widget,
         props: {
             svg: getSetFactory('svg'),
+            alt: getSetFactory('alt'),
             ...commonProps
         }
     },

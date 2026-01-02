@@ -41,6 +41,19 @@ const shouldAnimate = () => {
     return true;
 };
 
+// Cleanup function to prevent memory leaks
+export const cleanupAnimations = () => {
+    // Clear all pending timeouts
+    for (const timeoutId of animationTimeouts.values()) {
+        clearTimeout(timeoutId);
+    }
+    // Clear the maps and sets
+    animationTimeouts.clear();
+    animationQueue.clear();
+    // Reset frame timing
+    lastFrameTime = 0;
+};
+
 // Icon element creator
 export const iconElement = (svg: string, width = 14) => (
     <img
@@ -75,7 +88,7 @@ export const Button = memo(({
     children,
     selected,
     responsive,
-    scale,
+    scale = 1.0,
     disabled
 }: {
     onClick: () => void;
@@ -85,9 +98,6 @@ export const Button = memo(({
     scale?: number;
     disabled?: boolean;
 }) => {
-    // Use the parameters to avoid unused variable warnings
-    const _responsive = responsive;
-    const _scale = scale ?? 1.0;
     const isLightTheme = breeze.is_light_theme()
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
 
@@ -107,17 +117,17 @@ export const Button = memo(({
                             (isLightTheme ? '#f0f0f0cc' : '#404040cc')
             }
 
-            borderRadius={8}
-            paddingLeft={12}
-            paddingRight={12}
-            paddingTop={8}
-            paddingBottom={8}
+            borderRadius={responsive ? Math.round(8 * scale) : 8}
+            paddingLeft={responsive ? Math.round(12 * scale) : 12}
+            paddingRight={responsive ? Math.round(12 * scale) : 12}
+            paddingTop={responsive ? Math.round(8 * scale) : 8}
+            paddingBottom={responsive ? Math.round(8 * scale) : 8}
             autoSize={true}
             justifyContent="center"
             alignItems="center"
             horizontal
-            gap={6}
-            borderWidth={selected ? 2 : 0}
+            gap={responsive ? Math.round(6 * scale) : 6}
+            borderWidth={selected ? (responsive ? Math.round(2 * scale) : 2) : 0}
             borderColor="#2979FF"
             onMouseEnter={!disabled ? onMouseEnter : undefined}
             onMouseLeave={!disabled ? onMouseLeave : undefined}
@@ -371,7 +381,9 @@ export const PluginItem = memo(({
     onToggle: () => void;
     onMoreClick: (name: string) => void;
 }) => {
-    
+    // Move hook call to top level
+    const truncatedName = useTextTruncation(name, 200);
+
     return (
         <flex
             horizontal
@@ -390,7 +402,7 @@ export const PluginItem = memo(({
             <flex flexGrow={1}>
                 {/* Task 2.2.3: Add text truncation for plugin names */}
                 <Text fontSize={14} maxWidth={200}>
-                    {useTextTruncation(name, 200)}
+                    {truncatedName}
                 </Text>
                 {isPrioritized && (
                     <flex padding={4}>

@@ -25,7 +25,7 @@ const Sidebar = memo(({
     const { t } = useTranslation();
     const { setUpdateData } = useContext(UpdateDataContext)!;
     const { errorMessage, setErrorMessage, loadingMessage, setLoadingMessage } = useContext(NotificationContext)!;
-    const { currentPluginSource, setCurrentPluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
+    const { currentPluginSource, updatePluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
 
     useEffect(() => {
         if (errorMessage) {
@@ -37,7 +37,7 @@ const Sidebar = memo(({
     }, [errorMessage, setErrorMessage]);
 
     const handleSourceChange = useCallback((sourceName: string) => {
-        setCurrentPluginSource(sourceName);
+        updatePluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
 
@@ -50,7 +50,7 @@ const Sidebar = memo(({
             setErrorMessage(t("common.load_failed"));
             setLoadingMessage(null);
         });
-    }, [setCurrentPluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);
+    }, [updatePluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);
 
     useEffect(() => {
         handleSourceChange(currentPluginSource);
