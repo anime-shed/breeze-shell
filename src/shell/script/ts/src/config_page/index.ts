@@ -84,7 +84,7 @@ export const showConfigPage = () => {
     const renderer = createRenderer(widget);
 
     const onResize = (w: number, h: number) => {
-        renderer.update(React.createElement(ConfigApp, { initialWidth: w, initialHeight: h }));
+        renderer.render(React.createElement(ConfigApp, { initialWidth: w, initialHeight: h }));
     };
 
     // Initial render

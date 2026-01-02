@@ -89,7 +89,7 @@ export const getCurrentPreset = (current: any, presets: any, ignoreKeys: string[
 };
 
 // Config file operations
-// Task 1.3.1: Convert loadConfig to sync with error handling
+
 export const loadConfig = (): any => {
     try {
         const current_config_path = shell.breeze.data_directory() + '/config.json';
@@ -102,7 +102,7 @@ export const loadConfig = (): any => {
     }
 };
 
-// Task 1.3.2: Convert saveConfig to sync with error handling
+
 export const saveConfig = (config: any): void => {
     try {
         const configPath = shell.breeze.data_directory() + '/config.json';
@@ -115,7 +115,7 @@ export const saveConfig = (config: any): void => {
 };
 
 // Plugin utilities
-// Task 1.3.3: Convert loadPlugins to sync with error handling
+
 export const loadPlugins = (): string[] => {
     try {
         const scriptsPath = shell.breeze.data_directory() + '/scripts';
@@ -159,7 +159,7 @@ export const isPluginInstalled = (plugin: any) => {
     return null;
 };
 
-// Task 1.3.4: Convert getPluginVersion to sync with error handling
+
 export const getPluginVersion = (installPath: string): string => {
     try {
         const content = shell.fs.read(installPath);
@@ -171,7 +171,7 @@ export const getPluginVersion = (installPath: string): string => {
     }
 };
 
-// Task 2.2.1: Create useTextTruncation utility hook
+
 export const useTextTruncation = (text: string, maxWidth: number) => {
     const [truncatedText, setTruncatedText] = useState(text);
 
@@ -205,7 +205,7 @@ export const useTextTruncation = (text: string, maxWidth: number) => {
     return truncatedText;
 };
 
-// Task 2.4.1: Create useResponsive hook with breakpoint awareness
+
 export const useResponsive = (width: number) => {
     const getBreakpoint = (width: number): string => {
         if (width >= 1200) return 'xl';
@@ -231,7 +231,7 @@ export const useResponsive = (width: number) => {
     };
 };
 
-// Task 3.3.1: Create usePerformanceMetrics hook for development monitoring
+
 export const usePerformanceMetrics = () => {
     const [fps, setFps] = useState(60);
     const [memoryUsage, setMemoryUsage] = useState(0);
@@ -315,14 +315,14 @@ export const usePerformanceMetrics = () => {
         slowFrames,
         isPerformanceIssue: fps < 55 || frameDrops > 10,
 
-        // Task 3.3.2: Development mode performance warnings
+        
         ...(typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost' ? {
             showPerformanceWarning: true
         } : {})
     };
 };
 
-// Task 3.3.3: Performance alerting and management utilities
+
 export const reportPerformanceIssue = (type: 'low-fps' | 'high-memory' | 'frame-drops', details: string) => {
     console.warn(`[Performance Issue] ${type}: ${details}`);
 

@@ -6,54 +6,6 @@ import { t } from "../shared/i18n";
 
 import { memo, } from "react";
 
-// Task 1.4.2: Animation queuing system to limit simultaneous animations
-const animationQueue = new Set<string>();
-const animationTimeouts = new Map<string, number>();
-const MAX_CONCURRENT_ANIMATIONS = 3;
-
-const shouldQueueAnimation = (elementId: string) => {
-    if (animationQueue.size >= MAX_CONCURRENT_ANIMATIONS) {
-        return false; // Skip animation if too many running
-    }
-    // Clear any existing timeout for this element
-    if (animationTimeouts.has(elementId)) {
-        clearTimeout(animationTimeouts.get(elementId));
-    }
-    animationQueue.add(elementId);
-    const timeoutId = window.setTimeout(() => {
-        animationQueue.delete(elementId);
-        animationTimeouts.delete(elementId);
-    }, 300);
-    animationTimeouts.set(elementId, timeoutId);
-    return true;
-};
-
-// Task 1.4.3: Frame rate limiting for complex animations
-let lastFrameTime = 0;
-const MIN_FRAME_INTERVAL = 16; // ~60fps
-
-const shouldAnimate = () => {
-    const now = Date.now();
-    if (now - lastFrameTime < MIN_FRAME_INTERVAL) {
-        return false; // Skip this frame to maintain 60fps
-    }
-    lastFrameTime = now;
-    return true;
-};
-
-// Cleanup function to prevent memory leaks
-export const cleanupAnimations = () => {
-    // Clear all pending timeouts
-    for (const timeoutId of animationTimeouts.values()) {
-        clearTimeout(timeoutId);
-    }
-    // Clear the maps and sets
-    animationTimeouts.clear();
-    animationQueue.clear();
-    // Reset frame timing
-    lastFrameTime = 0;
-};
-
 // Icon element creator
 export const iconElement = (svg: string, width = 14) => (
     <img
@@ -82,7 +34,7 @@ export const SimpleMarkdownRender = ({ text, maxWidth }: { text: string, maxWidt
     );
 };
 
-// Task 2.3.1: Update Button component with responsive sizing
+
 export const Button = memo(({
     onClick,
     children,
@@ -179,7 +131,7 @@ export const TextButton = memo(({
     );
 });
 
-// Task 2.3.2: Add responsive props to Toggle component
+
 export const Toggle = ({
     label,
     value,
@@ -197,13 +149,6 @@ export const Toggle = ({
     const {
         isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp
     } = useHoverActive();
-
-    // Generate unique ID for animation queuing
-    const toggleId = `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
-
-    // For the animation logic, we need to avoid calling shouldAnimate() and shouldQueueAnimation() during render
-    // Instead, we'll always allow the animation properties but the actual animation behavior will be handled by the framework
-    // The framework will respect the animation logic internally
     const bgAnimatedVars = ['.r', '.a'];
     const thumbAnimatedVars = ['x'];
 
@@ -233,7 +178,7 @@ export const Toggle = ({
                 onMouseLeave={onMouseLeave}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
-                // Task 1.4.2: Apply animation queuing - only animate when shouldAnimate() allows
+
                 animatedVars={bgAnimatedVars}
                 borderWidth={0.5}
                 borderColor={value ? '#00000000' : (isLightTheme ? '#5A5A5A5' : '#CECDD0')}
@@ -243,7 +188,7 @@ export const Toggle = ({
                     height={responsive ? Math.round(((isHovered || isActive) ? 16 : 14) * scale) : ((isHovered || isActive) ? 16 : 14)}
                     borderRadius={responsive ? Math.round(8 * scale) : 8}
                     backgroundColor={value ? (isLightTheme ? '#FFFFFF' : '#000000') : (isLightTheme ? '#5A5A5A' : '#CECDD0')}
-                    // Task 1.4.3: Apply frame rate limiting - only animate when both conditions allow
+
                     animatedVars={thumbAnimatedVars}
                     autoSize={false}
                 />
@@ -252,7 +197,7 @@ export const Toggle = ({
     );
 }
 
-// Task 2.3.3: Add responsive props to SidebarItem
+
 export const SidebarItem = memo(({
     onClick,
     icon,

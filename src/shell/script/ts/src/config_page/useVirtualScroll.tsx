@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-// Task 3.1.1: Create useVirtualScroll hook for large dataset performance
+
 export interface VirtualScrollItem {
     id: string;
     data: any;

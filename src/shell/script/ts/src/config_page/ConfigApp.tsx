@@ -1,5 +1,5 @@
 import * as shell from "mshell";
-import { Button, Text, cleanupAnimations } from "./components";
+import { Button, Text } from "./components";
 import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, RESPONSIVE_SPACING } from "./constants";
 import { saveConfig, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
 import {
@@ -18,64 +18,79 @@ import PluginStore from "./PluginStore";
 import PluginConfig from "./PluginConfig";
 import { useState, useEffect, useCallback, ReactNode } from "react";
 
-interface AnimationSettings {
+// Interface definitions with separated known/dynamic properties
+interface AnimationSettingsCore {
     duration?: number;
     easing?: string;
     type?: string;
-    // Allow additional properties for flexible configuration
+}
+
+interface AnimationSettings extends AnimationSettingsCore {
     [key: string]: string | number | boolean | undefined;
 }
 
-interface ThemeSettings {
+interface ThemeSettingsCore {
     animation?: AnimationSettings;
     acrylic?: boolean;
     use_dwm_if_available?: boolean;
-    // Allow additional properties for flexible configuration
+}
+
+interface ThemeSettings extends ThemeSettingsCore {
     [key: string]: AnimationSettings | string | number | boolean | undefined;
 }
 
-interface ContextMenuSettings {
+interface ContextMenuSettingsCore {
     theme?: ThemeSettings;
     vsync?: boolean;
     hotkeys?: boolean;
     show_settings_button?: boolean;
     ignore_owner_draw?: boolean;
     reverse_if_open_to_up?: boolean;
-    // Allow additional properties for flexible configuration
+}
+
+interface ContextMenuSettings extends ContextMenuSettingsCore {
     [key: string]: ThemeSettings | string | number | boolean | undefined;
 }
 
-interface PluginInfo {
+interface PluginInfoCore {
     name: string;
     enabled?: boolean;
-    // Allow additional properties for flexible configuration
+}
+
+interface PluginInfo extends PluginInfoCore {
     [key: string]: string | boolean | undefined;
 }
 
-interface UpdateInfo {
+interface UpdateInfoCore {
     version?: string;
     download_url?: string;
     release_notes?: string;
-    // Allow additional properties for flexible configuration
+}
+
+interface UpdateInfo extends UpdateInfoCore {
     [key: string]: string | undefined;
 }
 
-interface PluginIndexEntry {
+interface PluginIndexEntryCore {
     name: string;
     description?: string;
     version?: string;
     author?: string;
-    // Allow additional properties for flexible configuration
+}
+
+interface PluginIndexEntry extends PluginIndexEntryCore {
     [key: string]: string | undefined;
 }
 
-interface GlobalConfig {
+interface GlobalConfigCore {
     context_menu?: ContextMenuSettings;
     debug_console?: boolean;
     plugin_load_order?: PluginInfo[];
     language?: string;
     plugin_source?: string;
-    // Allow additional properties for flexible configuration
+}
+
+interface GlobalConfig extends GlobalConfigCore {
     [key: string]: ContextMenuSettings | PluginInfo[] | string | boolean | undefined;
 }
 
@@ -130,6 +145,22 @@ const PAGE_TITLE_KEYS: Record<string, string> = {
     'plugin-config': 'plugins.config'
 };
 
+// Window API definitions
+interface ShellWindow {
+    getSize?: () => { width: number; height: number };
+    getDPIScale?: () => number;
+    addEventListener?: (event: string, handler: () => void) => void;
+    removeEventListener?: (event: string, handler: () => void) => void;
+}
+
+interface ShellWithWindow {
+    window?: ShellWindow;
+}
+
+const getShellWindow = (): ShellWindow | undefined => {
+    return (shell as unknown as ShellWithWindow).window;
+};
+
 export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_HEIGHT }: { initialWidth?: number, initialHeight?: number }) => {
     const { t } = useTranslation();
     const [activePage, setActivePage] = useState('context-menu');
@@ -143,15 +174,15 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
     const [currentPluginSource, setCurrentPluginSource] = useState<string>('Enlysure');
     const [cachedPluginIndex, setCachedPluginIndex] = useState<Record<string, PluginIndexEntry[]> | null>(null);
 
-    // Task 1.1.1: Add loading state variables for async config loading
+
     const [isLoading, setIsLoading] = useState(true);
     const [configError, setConfigError] = useState<string | null>(null);
 
-    // Task 3.3: Performance monitoring
+
     const metrics = usePerformanceMetrics();
 
-    // Task 1.1.2: Create async config loading function with error handling
-    const loadConfigAsync = async () => {
+
+    const loadConfigWithErrorHandling = () => {
         try {
             setIsLoading(true);
             setConfigError(null);
@@ -185,23 +216,24 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         }
     };
 
-    // Task 1.1.3: Replace synchronous config loading with async pattern
+
     useEffect(() => {
-        loadConfigAsync();
+        loadConfigWithErrorHandling();
     }, []);
 
-    // Task 2.1.1: Add window resize hook with DPI awareness
+
     const [windowSize, setWindowSize] = useState({ width: initialWidth, height: initialHeight });
     const [dpiScale, setDpiScale] = useState(1.0);
 
-    // Task 2.4.2: Use responsive hook for breakpoint-aware styling
+
     const responsive = useResponsive(windowSize.width);
 
     const handleResize = useCallback(() => {
         try {
+            const shellWindow = getShellWindow();
             // Check if shell.window is available and has size methods
-            if (shell && (shell as any).window && typeof (shell as any).window.getSize === 'function') {
-                const size = (shell as any).window.getSize();
+            if (shellWindow && typeof shellWindow.getSize === 'function') {
+                const size = shellWindow.getSize();
                 setWindowSize({ width: size.width, height: size.height });
             } else {
                 // Fallback: use provided initial dimensions
@@ -209,8 +241,8 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
             }
 
             // Detect DPI scaling if available
-            if (shell && (shell as any).window && typeof (shell as any).window.getDPIScale === 'function') {
-                const scale = (shell as any).window.getDPIScale();
+            if (shellWindow && typeof shellWindow.getDPIScale === 'function') {
+                const scale = shellWindow.getDPIScale();
                 setDpiScale(scale || 1.0);
             }
         } catch (error) {
@@ -222,14 +254,15 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         // Initial size detection
         handleResize();
 
+        const shellWindow = getShellWindow();
         // Set up resize listener if supported
-        if (shell && (shell as any).window && typeof (shell as any).window.addEventListener === 'function') {
-            (shell as any).window.addEventListener('resize', handleResize);
+        if (shellWindow && typeof shellWindow.addEventListener === 'function') {
+            shellWindow.addEventListener('resize', handleResize);
 
             // Cleanup function
             return () => {
-                if (shell && (shell as any).window && typeof (shell as any).window.removeEventListener === 'function') {
-                    (shell as any).window.removeEventListener('resize', handleResize);
+                if (typeof shellWindow.removeEventListener === 'function') {
+                    shellWindow.removeEventListener('resize', handleResize);
                 }
             };
         }
@@ -238,14 +271,6 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
         return () => { };
     }, [handleResize]);
 
-    // Cleanup animations when component unmounts
-    useEffect(() => {
-        return () => {
-            cleanupAnimations();
-        };
-    }, []);
-
-    // Task 1.3.5: Update callers to handle sync functions
     const updateContextMenu = (newConfig: ContextMenuSettings) => {
         setContextMenuConfig(newConfig);
         const newGlobal = { ...config, context_menu: newConfig };

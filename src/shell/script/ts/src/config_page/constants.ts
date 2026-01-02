@@ -22,7 +22,7 @@ export const WINDOW_WIDTH = 800;
 export const WINDOW_HEIGHT = 600;
 export const SIDEBAR_WIDTH = 170;
 
-// Task 2.3.4: Add responsive breakpoint constants
+
 export const BREAKPOINTS = {
     xs: 0,      // Extra small screens (mobile)
     sm: 576,    // Small screens (large mobile)
@@ -126,7 +126,7 @@ export const animation_presets = {
     }
 };
 
-// Task 4.1.4: Add performance-related constants
+
 export const PERFORMANCE = {
     FRAME_BUDGET_MS: 16.6, // 60fps
     LOW_FPS_THRESHOLD: 45,

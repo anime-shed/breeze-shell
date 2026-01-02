@@ -15,10 +15,10 @@ const UpdatePage = memo(() => {
     const [exist_old_file, set_exist_old_file] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // Task 1.2.1: Add loading state for update checks
+    
     const [isChecking, setIsChecking] = useState(false);
 
-    // Task 1.2.5: Add error handling with graceful recovery
+    
     useEffect(() => {
         const checkOldFile = () => {
             try {
@@ -43,7 +43,7 @@ const UpdatePage = memo(() => {
 
     const remote_version = updateData.shell.version;
 
-    // Task 1.2.2 & 1.2.3: Make updateShell function sync since fs.exists is synchronous
+    
     const updateShell = () => {
         if (isUpdating) return;
 
@@ -65,7 +65,7 @@ const UpdatePage = memo(() => {
         };
 
         try {
-            // Task 1.2.3: Make file existence checks sync (fs.exists is synchronous)
+            
             const shellExists = shell.fs.exists(shellPath);
             const oldShellExists = shell.fs.exists(shellOldPath);
 

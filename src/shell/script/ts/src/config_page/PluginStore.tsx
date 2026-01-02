@@ -14,7 +14,7 @@ type PluginStatus = {
 };
 
 
-// Task 3.1.3: Virtual scrolling item component
+
 const PluginVirtualItem = memo(({
     plugin,
     index,
@@ -94,7 +94,7 @@ const PluginListItem = memo(({
     );
 });
 
-// Task 3.2.1: Add bounded plugin status cache with size limits
+
 const CACHE_SIZE_LIMIT = 100; // Maximum cached plugins
 const MAX_CACHE_AGE = 300000; // 5 minutes in milliseconds
 
@@ -108,11 +108,10 @@ const PluginStore = memo(() => {
     const [pluginStatuses, setPluginStatuses] = useState<Record<string, PluginStatus>>({});
     const [loadingStatuses, setLoadingStatuses] = useState(false);
 
-    // Task 3.1.3: Add containerRef for virtual scrolling
-    // const containerRef = useRef<any>(null); // Removed ref usage
+    
     const cacheTimestamps = useRef<Map<string, number>>(new Map());
 
-    // Task 3.2.2: Add cache cleanup with size limits
+    
     const cleanupCache = () => {
         const now = Date.now();
         const timestamps = cacheTimestamps.current;
@@ -206,7 +205,7 @@ const PluginStore = memo(() => {
                         }
                     }
 
-                    // Task 3.2.3: Add cache statistics and management
+                    
                     const pluginStatus = {
                         installed,
                         installPath,
@@ -241,7 +240,7 @@ const PluginStore = memo(() => {
         loadPluginStatuses();
     }, [loadPluginStatuses]);
 
-    // Task 3.2.4: Add cache cleanup on unmount
+    
     useEffect(() => {
         const timestampsRef = cacheTimestamps.current;
         // Cleanup on unmount - only clear timestamps to avoid state updates on unmounted component
@@ -279,7 +278,7 @@ const PluginStore = memo(() => {
         });
     };
 
-    // Task 3.1.2: Add virtual scrolling for >50 plugins
+    
     const pluginsWithStatus = (updateData?.plugins || []).map((plugin: any) => {
         const status = pluginStatuses[plugin.name] || {
             installed: false,
@@ -313,7 +312,7 @@ const PluginStore = memo(() => {
             {loadingStatuses && <Text>{t("plugins.loading_statuses")}</Text>}
             <flex gap={10} alignItems="stretch" flexGrow={1}>
                 {shouldUseVirtualScroll ? (
-                    // Task 3.1.3: Virtual scrolling implementation
+                    
                     <flex
                         enableScrolling={true}
                         height={containerHeight}
