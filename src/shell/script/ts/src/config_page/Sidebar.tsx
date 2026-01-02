@@ -42,11 +42,14 @@ const Sidebar = memo(({
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
         const url = PLUGIN_SOURCES[sourceName] + 'plugins-index.json';
+        let cancelled = false;
         const timeout = shell.infra.setTimeout(() => {
+            cancelled = true;
             setErrorMessage(t("common.load_failed"));
             setLoadingMessage(null);
         }, 10000);
         fetchAsync(url).then((data: string) => {
+            if (cancelled) return;
             try {
                 const json = JSON.parse(data);
                 setCachedPluginIndex(json);
@@ -56,6 +59,7 @@ const Sidebar = memo(({
                 setErrorMessage(t("common.load_failed"));
             }
         }).catch((e: any) => {
+            if (cancelled) return;
             shell.println('Failed to fetch update data:', e);
             setErrorMessage(t("common.load_failed"));
         }).finally(() => {

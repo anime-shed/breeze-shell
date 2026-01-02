@@ -213,10 +213,10 @@ export const useTextTruncation = (text: string, maxWidth: number) => {
             const lastSpaceIndex = truncated.lastIndexOf(' ');
             if (lastSpaceIndex === -1) {
                 setTruncatedText(truncated + ellipsis);
-            } else if (lastSpaceIndex > maxChars * 0.8) {
-                setTruncatedText(truncated + ellipsis);
-            } else {
+            } else if (lastSpaceIndex > maxChars * 0.5) {
                 setTruncatedText(truncated.substring(0, lastSpaceIndex) + ellipsis);
+            } else {
+                setTruncatedText(truncated + ellipsis);
             }
         }
     }, [text, maxWidth]);
