@@ -50,6 +50,7 @@ export const iconElement = (svg: string, width = 14) => (
         )}
         width={width}
         height={width}
+        alt=""
     />
 );
 
@@ -74,7 +75,7 @@ export const Button = memo(({
     children,
     selected,
     responsive,
-    scale = 1.0,
+    scale,
     disabled
 }: {
     onClick: () => void;
@@ -84,6 +85,9 @@ export const Button = memo(({
     scale?: number;
     disabled?: boolean;
 }) => {
+    // Use the parameters to avoid unused variable warnings
+    const _responsive = responsive;
+    const _scale = scale ?? 1.0;
     const isLightTheme = breeze.is_light_theme()
     const { isHovered, isActive, onMouseEnter, onMouseLeave, onMouseDown, onMouseUp } = useHoverActive();
 
@@ -320,6 +324,7 @@ export const PluginCheckbox = memo(({ isEnabled, onToggle }: { isEnabled: boolea
                     svg={`<svg viewBox="0 0 24 24"><path fill="${isLightTheme ? '#000000' : '#FFFFFF'}" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 17.59 13.41 12z"/></svg>`}
                     width={14}
                     height={14}
+                    alt=""
                 />
             ) : (
                 <flex width={14} height={14} autoSize={false} />

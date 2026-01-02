@@ -35,7 +35,7 @@ const UpdatePage = memo(() => {
         };
 
         checkOldFile();
-    }, []);
+    }, [t, setErrorMessage]);
 
     if (!updateData) {
         return <Text>{t("common.loading")}</Text>;
@@ -76,9 +76,9 @@ const UpdatePage = memo(() => {
                         await shell.fs.rename(shellPath, shellOldPath);
                         downloadNewShell();
                     } catch (e) {
-                        shell.println(t('plugins.update_failed', { error: t('update.cannot_move_file') }));
+                        shell.println(t('plugins.update_failed', { error: String(e) }));
                         setIsUpdating(false);
-                        setErrorMessage(t('plugins.update_failed', { error: t('update.cannot_move_file') }));
+                        setErrorMessage(t('plugins.update_failed', { error: String(e) }));
                     }
                 } else {
                     await shell.fs.rename(shellPath, shellOldPath);
@@ -87,10 +87,10 @@ const UpdatePage = memo(() => {
             } else {
                 downloadNewShell();
             }
-        } catch (e) {
-            shell.println(t('plugins.update_failed', { error: String(e) }));
+        } catch (_e) {
+            shell.println(t('plugins.update_failed', { error: String(_e) }));
             setIsUpdating(false);
-            setErrorMessage(t('plugins.update_failed', { error: String(e) }));
+            setErrorMessage(t('plugins.update_failed', { error: String(_e) }));
         }
     };
 
