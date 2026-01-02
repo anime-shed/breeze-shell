@@ -38,7 +38,6 @@ const PluginVirtualItem = memo(({
             gap={10}
             padding={12}
             backgroundColor={index % 2 === 0 ? 'rgba(0,0,0,0.02)' : 'transparent'}
-            onClick={() => onClick(plugin, index)}
         >
             <flex gap={10} alignItems="stretch">
                 <Text fontSize={18} maxWidth={300}>
@@ -236,11 +235,11 @@ const PluginStore = memo(() => {
             setPluginStatuses(prev => ({ ...prev, ...statuses }));
             setLoadingStatuses(false);
         }
-    }, [updateData?.plugins, t, setErrorMessage, setLoadingStatuses, setPluginStatuses, cacheTimestamps]);
+    }, [updateData?.plugins, t, setErrorMessage]);
 
     useEffect(() => {
         loadPluginStatuses();
-    }, [t, loadPluginStatuses]);
+    }, [loadPluginStatuses]);
 
     // Task 3.2.4: Add cache cleanup on unmount
     useEffect(() => {

@@ -123,6 +123,13 @@ const DEFAULT_CONFIG: GlobalConfig = {
     plugin_load_order: []
 };
 
+const PAGE_TITLE_KEYS: Record<string, string> = {
+    'context-menu': 'menu.context_menu',
+    'update': 'update.title',
+    'plugin-store': 'plugins.store',
+    'plugin-config': 'plugins.config'
+};
+
 export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_HEIGHT }: { initialWidth?: number, initialHeight?: number }) => {
     const { t } = useTranslation();
     const [activePage, setActivePage] = useState('context-menu');
@@ -321,7 +328,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
                     alignItems="stretch"
                 >
                     {/* Task 1.1.4: Add loading spinner/error display */}
-                    {isLoading && (
+                    {(isLoading || configError) && (
                         <flex
                             backgroundColor="rgba(0,0,0,0.8)"
                             alignItems="center"
@@ -329,7 +336,9 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
                             flexGrow={1}
                         >
                             <flex alignItems="center" gap={10}>
-                                <Text fontSize={18}>Loading configuration...</Text>
+                                {isLoading ? (
+                                    <Text fontSize={18}>Loading configuration...</Text>
+                                ) : null}
                                 {configError && (
                                     <Text fontSize={14}>{configError}</Text>
                                 )}
@@ -353,10 +362,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
                                 <flex gap={RESPONSIVE_SPACING.xs} flexGrow={1} alignItems="stretch">
                                     <flex padding={RESPONSIVE_SPACING.xs} gap={RESPONSIVE_SPACING.xs}>
                                         <Text fontSize={responsive.isMobile ? 20 : 24}>
-                                            {activePage === 'context-menu' ? t("menu.context_menu") :
-                                                activePage === 'update' ? t("update.title") :
-                                                    activePage === 'plugin-store' ? t("plugins.store") :
-                                                        activePage === 'plugin-config' ? t("plugins.config") : ""}
+                                            {PAGE_TITLE_KEYS[activePage] ? t(PAGE_TITLE_KEYS[activePage]) : ""}
                                         </Text>
                                         <flex gap={RESPONSIVE_SPACING.xs} horizontal>
                                             {['context-menu', 'update', 'plugin-store', 'plugin-config'].map((page) => (
@@ -368,10 +374,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
                                                     scale={0.9}
                                                 >
                                                     <Text fontSize={14}>
-                                                        {page === 'context-menu' ? t("menu.context_menu") :
-                                                            page === 'update' ? t("update.title") :
-                                                                page === 'plugin-store' ? t("plugins.store") :
-                                                                    page === 'plugin-config' ? t("plugins.config") : ""}
+                                                        {PAGE_TITLE_KEYS[page] ? t(PAGE_TITLE_KEYS[page]) : ""}
                                                     </Text>
                                                 </Button>
                                             ))}

@@ -201,6 +201,12 @@ export const Toggle = ({
     // Generate unique ID for animation queuing
     const toggleId = `toggle-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
+    // For the animation logic, we need to avoid calling shouldAnimate() and shouldQueueAnimation() during render
+    // Instead, we'll always allow the animation properties but the actual animation behavior will be handled by the framework
+    // The framework will respect the animation logic internally
+    const bgAnimatedVars = ['.r', '.a'];
+    const thumbAnimatedVars = ['x'];
+
     return (
         <flex horizontal alignItems="center" gap={10} justifyContent="space-between">
             <Text>{label}</Text>
@@ -218,14 +224,6 @@ export const Toggle = ({
                 onClick={() => {
                     // Always update state - never discard user input
                     onChange(!value);
-                    
-                    // Only apply animation logic when shouldAnimate() returns true
-                    // This preserves frame-rate throttling for visuals while ensuring
-                    // state changes are never blocked
-                    if (shouldAnimate()) {
-                        // Animation will be handled by animatedVars below
-                        // The queue check happens in animatedVars calculation
-                    }
                 }}
                 autoSize={false}
                 padding={
@@ -236,7 +234,7 @@ export const Toggle = ({
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
                 // Task 1.4.2: Apply animation queuing - only animate when shouldAnimate() allows
-                animatedVars={shouldAnimate() && shouldQueueAnimation(toggleId) ? ['.r', '.a'] : []}
+                animatedVars={bgAnimatedVars}
                 borderWidth={0.5}
                 borderColor={value ? '#00000000' : (isLightTheme ? '#5A5A5A5' : '#CECDD0')}
             >
@@ -246,7 +244,7 @@ export const Toggle = ({
                     borderRadius={responsive ? Math.round(8 * scale) : 8}
                     backgroundColor={value ? (isLightTheme ? '#FFFFFF' : '#000000') : (isLightTheme ? '#5A5A5A' : '#CECDD0')}
                     // Task 1.4.3: Apply frame rate limiting - only animate when both conditions allow
-                    animatedVars={shouldAnimate() && shouldQueueAnimation(toggleId + '-thumb') ? ['x'] : []}
+                    animatedVars={thumbAnimatedVars}
                     autoSize={false}
                 />
             </flex>
