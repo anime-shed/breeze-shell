@@ -20,10 +20,10 @@ const UpdatePage = memo(() => {
 
     // Task 1.2.5: Add error handling with graceful recovery
     useEffect(() => {
-        const checkOldFile = async () => {
+        const checkOldFile = () => {
             try {
                 setIsChecking(true);
-                const oldFileExists = await shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll');
+                const oldFileExists = shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll');
                 set_exist_old_file(oldFileExists);
             } catch (error) {
                 console.error('Error checking for old shell file:', error);
@@ -43,8 +43,8 @@ const UpdatePage = memo(() => {
 
     const remote_version = updateData.shell.version;
 
-    // Task 1.2.2 & 1.2.3: Make updateShell function async with non-blocking operations
-    const updateShell = async () => {
+    // Task 1.2.2 & 1.2.3: Make updateShell function sync since fs.exists is synchronous
+    const updateShell = () => {
         if (isUpdating) return;
 
         setIsUpdating(true);
@@ -65,15 +65,15 @@ const UpdatePage = memo(() => {
         };
 
         try {
-            // Task 1.2.3: Make file existence checks async
-            const shellExists = await shell.fs.exists(shellPath);
-            const oldShellExists = await shell.fs.exists(shellOldPath);
+            // Task 1.2.3: Make file existence checks sync (fs.exists is synchronous)
+            const shellExists = shell.fs.exists(shellPath);
+            const oldShellExists = shell.fs.exists(shellOldPath);
 
             if (shellExists) {
                 if (oldShellExists) {
                     try {
-                        await shell.fs.remove(shellOldPath);
-                        await shell.fs.rename(shellPath, shellOldPath);
+                        shell.fs.remove(shellOldPath);
+                        shell.fs.rename(shellPath, shellOldPath);
                         downloadNewShell();
                     } catch (e) {
                         shell.println(t('plugins.update_failed', { error: String(e) }));
@@ -81,7 +81,7 @@ const UpdatePage = memo(() => {
                         setErrorMessage(t('plugins.update_failed', { error: String(e) }));
                     }
                 } else {
-                    await shell.fs.rename(shellPath, shellOldPath);
+                    shell.fs.rename(shellPath, shellOldPath);
                     downloadNewShell();
                 }
             } else {
@@ -101,7 +101,7 @@ const UpdatePage = memo(() => {
             {/* Task 1.2.4: Add progress indicator during update checks */}
             {isChecking && (
                 <flex backgroundColor="rgba(0,0,0,0.1)" padding={10} borderRadius={5} alignItems="center">
-                    <Text fontSize={14}>Checking for updates...</Text>
+                    <Text fontSize={14}>{t("update.checking")}</Text>
                 </flex>
             )}
 

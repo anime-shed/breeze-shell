@@ -13,9 +13,6 @@ type PluginStatus = {
     hasUpdate: boolean;
 };
 
-type PluginDefinition = {
-    name: string;
-};
 
 // Task 3.1.3: Virtual scrolling item component
 const PluginVirtualItem = memo(({
@@ -108,7 +105,6 @@ const PluginStore = memo(() => {
     const { currentPluginSource } = useContext(PluginSourceContext)!;
     const { t } = useTranslation();
 
-    const [, _setPlugins] = useState<PluginDefinition[]>([]);
     const [installingPlugins, setInstallingPlugins] = useState<Set<string>>(new Set());
     const [pluginStatuses, setPluginStatuses] = useState<Record<string, PluginStatus>>({});
     const [loadingStatuses, setLoadingStatuses] = useState(false);
@@ -244,14 +240,13 @@ const PluginStore = memo(() => {
 
     useEffect(() => {
         loadPluginStatuses();
-    }, [updateData?.plugins, t, loadPluginStatuses]);
+    }, [t, loadPluginStatuses]);
 
     // Task 3.2.4: Add cache cleanup on unmount
     useEffect(() => {
         const timestampsRef = cacheTimestamps.current;
-        // Cleanup on unmount
+        // Cleanup on unmount - only clear timestamps to avoid state updates on unmounted component
         return () => {
-            cleanupCache();
             timestampsRef.clear();
         };
     }, []);
