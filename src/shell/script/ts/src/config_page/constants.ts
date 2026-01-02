@@ -1,4 +1,4 @@
-import * as shell from "mshell";
+
 
 // Note: Legacy local languages table removed. Use unified i18n system via shell.breeze and t() utility.
 

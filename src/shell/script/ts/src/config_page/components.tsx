@@ -1,21 +1,30 @@
 import { breeze } from "mshell";
-import { showMenu, useHoverActive, useTextTruncation } from "./utils";
+import { useHoverActive, useTextTruncation } from "./utils";
 import { type ReactNode } from "react";
 import { ICON_MORE_VERT } from "./constants";
 import { t } from "../shared/i18n";
 
-import { useState, useEffect, memo, createContext, useContext, useMemo } from "react";
+import { memo, } from "react";
 
 // Task 1.4.2: Animation queuing system to limit simultaneous animations
 const animationQueue = new Set<string>();
+const animationTimeouts = new Map<string, number>();
 const MAX_CONCURRENT_ANIMATIONS = 3;
 
 const shouldQueueAnimation = (elementId: string) => {
     if (animationQueue.size >= MAX_CONCURRENT_ANIMATIONS) {
         return false; // Skip animation if too many running
     }
+    // Clear any existing timeout for this element
+    if (animationTimeouts.has(elementId)) {
+        clearTimeout(animationTimeouts.get(elementId));
+    }
     animationQueue.add(elementId);
-    setTimeout(() => animationQueue.delete(elementId), 300); // Clear slot after animation
+    const timeoutId = window.setTimeout(() => {
+        animationQueue.delete(elementId);
+        animationTimeouts.delete(elementId);
+    }, 300);
+    animationTimeouts.set(elementId, timeoutId);
     return true;
 };
 
@@ -192,7 +201,18 @@ export const Toggle = ({
                 justifyContent={value ? 'end' : 'start'}
                 horizontal
                 alignItems="center"
-                onClick={() => shouldAnimate() && onChange(!value)}
+                onClick={() => {
+                    // Always update state - never discard user input
+                    onChange(!value);
+                    
+                    // Only apply animation logic when shouldAnimate() returns true
+                    // This preserves frame-rate throttling for visuals while ensuring
+                    // state changes are never blocked
+                    if (shouldAnimate()) {
+                        // Animation will be handled by animatedVars below
+                        // The queue check happens in animatedVars calculation
+                    }
+                }}
                 autoSize={false}
                 padding={
                     (isHovered || isActive) ? 2 : 3
@@ -201,8 +221,8 @@ export const Toggle = ({
                 onMouseLeave={onMouseLeave}
                 onMouseDown={onMouseDown}
                 onMouseUp={onMouseUp}
-                // Task 1.4.2: Apply animation queuing
-                animatedVars={shouldQueueAnimation(toggleId) ? ['.r', '.a'] : []}
+                // Task 1.4.2: Apply animation queuing - only animate when shouldAnimate() allows
+                animatedVars={shouldAnimate() && shouldQueueAnimation(toggleId) ? ['.r', '.a'] : []}
                 borderWidth={0.5}
                 borderColor={value ? '#00000000' : (isLightTheme ? '#5A5A5A5' : '#CECDD0')}
             >
@@ -211,7 +231,7 @@ export const Toggle = ({
                     height={responsive ? Math.round(((isHovered || isActive) ? 16 : 14) * scale) : ((isHovered || isActive) ? 16 : 14)}
                     borderRadius={responsive ? Math.round(8 * scale) : 8}
                     backgroundColor={value ? (isLightTheme ? '#FFFFFF' : '#000000') : (isLightTheme ? '#5A5A5A' : '#CECDD0')}
-                    // Task 1.4.3: Apply frame rate limiting
+                    // Task 1.4.3: Apply frame rate limiting - only animate when both conditions allow
                     animatedVars={shouldAnimate() && shouldQueueAnimation(toggleId + '-thumb') ? ['x'] : []}
                     autoSize={false}
                 />
@@ -346,7 +366,7 @@ export const PluginItem = memo(({
     onToggle: () => void;
     onMoreClick: (name: string) => void;
 }) => {
-    const isLightTheme = breeze.is_light_theme();
+    
     return (
         <flex
             horizontal

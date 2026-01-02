@@ -18,7 +18,7 @@ globalThis.on_plugin_menu = {}
 export const plugin = (import_meta, default_config = {}) => {
     const CONFIG_FILE = 'config.json'
 
-    const { name, url } = import_meta
+    const { name, } = import_meta
     const languages = {}
 
     const nameNoExt = name.endsWith('.js') ? name.slice(0, -3) : name

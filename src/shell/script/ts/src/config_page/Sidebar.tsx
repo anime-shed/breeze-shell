@@ -23,9 +23,9 @@ const Sidebar = memo(({
     sidebarWidth: number;
 }) => {
     const { t } = useTranslation();
-    const { updateData, setUpdateData } = useContext(UpdateDataContext)!;
+    const { setUpdateData } = useContext(UpdateDataContext)!;
     const { errorMessage, setErrorMessage, loadingMessage, setLoadingMessage } = useContext(NotificationContext)!;
-    const { currentPluginSource, setCurrentPluginSource, cachedPluginIndex, setCachedPluginIndex } = useContext(PluginSourceContext)!;
+    const { currentPluginSource, updatePluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
 
     useEffect(() => {
         if (errorMessage) {
@@ -37,7 +37,7 @@ const Sidebar = memo(({
     }, [errorMessage, setErrorMessage]);
 
     const handleSourceChange = (sourceName: string) => {
-        setCurrentPluginSource(sourceName);
+        updatePluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
 
