@@ -64,6 +64,8 @@
     "update.check_failed": "Check failed: {error}",
     "error.config_parse_failed": "Config parse failed: {error}",
     "status.config_changed": "Config changed: {path} {type}",
+    "config.load_failed_using_defaults": "Failed to load configuration. Using defaults.",
+    "config.loading": "Loading configuration...",
     "theme.default": "Default",
     "theme.compact": "Compact",
     "theme.relaxed": "Relaxed",

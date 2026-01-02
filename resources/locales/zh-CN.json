@@ -64,6 +64,8 @@
     "update.check_failed": "检查失败: {error}",
     "error.config_parse_failed": "配置文件解析失败: {error}",
     "status.config_changed": "配置文件变更: {path} {type}",
+    "config.load_failed_using_defaults": "加载配置失败，正在使用默认值。",
+    "config.loading": "正在加载配置...",
     "theme.default": "默认",
     "theme.compact": "紧凑",
     "theme.relaxed": "宽松",

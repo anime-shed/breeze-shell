@@ -182,94 +182,83 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
     const metrics = usePerformanceMetrics();
 
 
-    const loadConfigWithErrorHandling = () => {
-        try {
-            setIsLoading(true);
-            setConfigError(null);
-
-            const parsed = loadConfig();
-
-            setConfig(parsed);
-            setContextMenuConfig(parsed.context_menu || {});
-            setDebugConsole(parsed.debug_console || false);
-            setPluginLoadOrder(parsed.plugin_load_order || []);
-            if (parsed.plugin_source) {
-                setCurrentPluginSource(parsed.plugin_source);
-            }
-
-        } catch (error) {
-            const errorMsg = error instanceof Error ? error.message : String(error);
-            const errorStack = error instanceof Error && error.stack ? `\nStack: ${error.stack}` : '';
-            shell.println(`[ConfigApp] Failed to load config: ${errorMsg}${errorStack}`);
-
-            setConfigError(errorMsg);
-            setErrorMessage('Failed to load configuration. Using defaults.');
-            setConfig(DEFAULT_CONFIG);
-            setContextMenuConfig(DEFAULT_CONFIG.context_menu || {});
-            setDebugConsole(DEFAULT_CONFIG.debug_console || false);
-            setPluginLoadOrder(DEFAULT_CONFIG.plugin_load_order || []);
-            if (DEFAULT_CONFIG.plugin_source) {
-                setCurrentPluginSource(DEFAULT_CONFIG.plugin_source);
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-
     useEffect(() => {
+        const loadConfigWithErrorHandling = () => {
+            try {
+                setIsLoading(true);
+                setConfigError(null);
+
+                const parsed = loadConfig();
+
+                setConfig(parsed);
+                setContextMenuConfig(parsed.context_menu || {});
+                setDebugConsole(parsed.debug_console || false);
+                setPluginLoadOrder(parsed.plugin_load_order || []);
+                if (parsed.plugin_source) {
+                    setCurrentPluginSource(parsed.plugin_source);
+                }
+
+            } catch (error) {
+                const errorMsg = error instanceof Error ? error.message : String(error);
+                const errorStack = error instanceof Error && error.stack ? `\nStack: ${error.stack}` : '';
+                shell.println(`[ConfigApp] Failed to load config: ${errorMsg}${errorStack}`);
+
+                setConfigError(errorMsg);
+                setErrorMessage(t('config.load_failed_using_defaults'));
+                setConfig(DEFAULT_CONFIG);
+                setContextMenuConfig(DEFAULT_CONFIG.context_menu || {});
+                setDebugConsole(DEFAULT_CONFIG.debug_console || false);
+                setPluginLoadOrder(DEFAULT_CONFIG.plugin_load_order || []);
+                if (DEFAULT_CONFIG.plugin_source) {
+                    setCurrentPluginSource(DEFAULT_CONFIG.plugin_source);
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         loadConfigWithErrorHandling();
-    }, []);
+    }, [t]);
 
 
     const [windowSize, setWindowSize] = useState({ width: initialWidth, height: initialHeight });
     const [dpiScale, setDpiScale] = useState(1.0);
 
-
     const responsive = useResponsive(windowSize.width);
 
-    const handleResize = useCallback(() => {
+    // Sync window size with props (pushed from index.ts resize listener)
+    useEffect(() => {
+        if (initialWidth > 0 && initialHeight > 0) {
+            setWindowSize({ width: initialWidth, height: initialHeight });
+        }
+    }, [initialWidth, initialHeight]);
+
+    const updateDpi = useCallback(() => {
         try {
             const shellWindow = getShellWindow();
-            // Check if shell.window is available and has size methods
-            if (shellWindow && typeof shellWindow.getSize === 'function') {
-                const size = shellWindow.getSize();
-                setWindowSize({ width: size.width, height: size.height });
-            } else {
-                // Fallback: use provided initial dimensions
-                setWindowSize({ width: initialWidth, height: initialHeight });
-            }
-
-            // Detect DPI scaling if available
             if (shellWindow && typeof shellWindow.getDPIScale === 'function') {
                 const scale = shellWindow.getDPIScale();
                 setDpiScale(scale || 1.0);
             }
         } catch (error) {
-            console.error('Error handling window resize:', error);
+            console.error('Error getting DPI scale:', error);
         }
-    }, [initialWidth, initialHeight]);
+    }, []);
 
     useEffect(() => {
-        // Initial size detection
-        handleResize();
+        updateDpi();
 
+        // Optional: Listen for resize purely for DPI updates (size handled via props)
         const shellWindow = getShellWindow();
-        // Set up resize listener if supported
         if (shellWindow && typeof shellWindow.addEventListener === 'function') {
-            shellWindow.addEventListener('resize', handleResize);
-
-            // Cleanup function
+            shellWindow.addEventListener('resize', updateDpi);
             return () => {
                 if (typeof shellWindow.removeEventListener === 'function') {
-                    shellWindow.removeEventListener('resize', handleResize);
+                    shellWindow.removeEventListener('resize', updateDpi);
                 }
             };
         }
-
-        // Return empty cleanup if not supported
-        return () => { };
-    }, [handleResize]);
+    }, [updateDpi]);
 
     const updateContextMenu = (newConfig: ContextMenuSettings) => {
         setContextMenuConfig(newConfig);
@@ -362,7 +351,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
                         >
                             <flex alignItems="center" gap={10}>
                                 {isLoading ? (
-                                    <Text fontSize={18}>Loading configuration...</Text>
+                                    <Text fontSize={18}>{t("config.loading")}</Text>
                                 ) : null}
                                 {configError && (
                                     <Text fontSize={14}>{configError}</Text>
