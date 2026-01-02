@@ -4,6 +4,10 @@ import { ContextMenuContext, DebugConsoleContext, GlobalConfigContext } from "./
 import { useTranslation, getNestedValue, setNestedValue, applyPreset, getCurrentPreset } from "./utils";
 import { theme_presets, animation_presets } from "./constants";
 import { memo, useContext, useEffect, useState } from "react";
+
+const cleanAnimation = (animation: Record<string, unknown>) =>
+    Object.keys(animation).length ? animation : undefined;
+
 const ContextMenuConfig = memo(() => {
     const { config, update } = useContext(ContextMenuContext)!;
     const { value: debugConsole, update: updateDebugConsole } = useContext(DebugConsoleContext)!;
@@ -19,8 +23,6 @@ const ContextMenuConfig = memo(() => {
 
     const currentTheme = config?.theme;
     const currentAnimation = config?.theme?.animation;
-
-
 
     const currentThemePreset = getCurrentPreset(currentTheme, theme_presets, ['animation']);
     const currentAnimationPreset = getCurrentPreset(currentAnimation, animation_presets);
@@ -73,26 +75,22 @@ const ContextMenuConfig = memo(() => {
             <flex gap={10}>
                 <Text fontSize={18}>{t("settings.animation")}</Text>
                 <flex horizontal gap={10}>
-                    {Object.keys(animation_presets).map(name => {
-                        const cleanAnimation = (animation: Record<string, unknown>) =>
-                            Object.keys(animation).length ? animation : undefined;
-                        return (
-                            <Button
-                                key={name}
-                                selected={name === currentAnimationPreset}
-                                onClick={() => {
-                                    try {
-                                        const newAnimation = applyPreset(animation_presets[name], config?.theme?.animation, animation_presets);
-                                        update({ ...config, theme: { ...config.theme, animation: cleanAnimation(newAnimation) } });
-                                    } catch (e) {
-                                        shell.println(e);
-                                    }
-                                }}
-                            >
-                                <Text fontSize={14}>{t(`animation.${name}`) || name}</Text>
-                            </Button>
-                        );
-                    })}
+                    {Object.keys(animation_presets).map(name => (
+                        <Button
+                            key={name}
+                            selected={name === currentAnimationPreset}
+                            onClick={() => {
+                                try {
+                                    const newAnimation = applyPreset(animation_presets[name], config?.theme?.animation, animation_presets);
+                                    update({ ...config, theme: { ...config.theme, animation: cleanAnimation(newAnimation) } });
+                                } catch (e) {
+                                    shell.println(e);
+                                }
+                            }}
+                        >
+                            <Text fontSize={14}>{t(`animation.${name}`) || name}</Text>
+                        </Button>
+                    ))}
                 </flex>
             </flex>
 

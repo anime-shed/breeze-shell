@@ -2,7 +2,7 @@ import * as shell from "mshell";
 import { showMenu } from "./utils";
 import { Text, PluginItem } from "./components";
 import { PluginLoadOrderContext } from "./contexts";
-import { useTranslation, loadPlugins, togglePlugin, deletePlugin, useTextTruncation } from "./utils";
+import { useTranslation, loadPlugins, togglePlugin, deletePlugin, } from "./utils";
 import { memo, useContext, useEffect, useState } from "react";
 
 const PluginConfig = memo(() => {
@@ -19,25 +19,35 @@ const PluginConfig = memo(() => {
     }, []);
 
     const reloadPluginsList = async () => {
+        if (loading) return; // Prevent concurrent reloads
         setLoading(true);
         // Allow UI to render loading state
         await new Promise(r => setTimeout(r, 0));
 
-        const plugins = await loadPlugins();
-        setInstalledPlugins(plugins);
+        try {
+            const plugins = await loadPlugins();
+            setInstalledPlugins(plugins);
 
-        const enabled = new Set<string>();
-        let count = 0;
-        for (const name of plugins) {
-            if (count++ % 50 === 0) await new Promise(r => setTimeout(r, 0));
+            const enabled = new Set<string>();
+            let count = 0;
+            for (const name of plugins) {
+                if (count++ % 50 === 0) await new Promise(r => setTimeout(r, 0));
 
-            const path = shell.breeze.data_directory() + '/scripts/' + name + '.js';
-            if (shell.fs.exists(path)) {
-                enabled.add(name);
+                try {
+                    const path = shell.breeze.data_directory() + '/scripts/' + name + '.js';
+                    if (shell.fs.exists(path)) {
+                        enabled.add(name);
+                    }
+                } catch (err) {
+                    console.error(`Failed to check plugin ${name}:`, err);
+                }
             }
+            setEnabledPlugins(enabled);
+        } catch (error) {
+            console.error('Failed to reload plugins list:', error);
+        } finally {
+            setLoading(false);
         }
-        setEnabledPlugins(enabled);
-        setLoading(false);
     };
 
     const handleTogglePlugin = async (name: string) => {

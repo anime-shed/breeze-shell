@@ -1,8 +1,8 @@
 import * as shell from "mshell";
-import { theme_presets, animation_presets } from "./constants";
+import { } from "./constants";
 import { t, currentLanguage, isRTL } from "../shared/i18n";
 import { menu_controller } from "mshell";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, } from "react";
 
 export const useHoverActive = () => {
     const [isHovered, setIsHovered] = useState(false);
@@ -89,11 +89,11 @@ export const getCurrentPreset = (current: any, presets: any, ignoreKeys: string[
 };
 
 // Config file operations
-// Task 1.3.1: Convert loadConfig to async with error handling
-export const loadConfig = async (): Promise<any> => {
+// Task 1.3.1: Convert loadConfig to sync with error handling
+export const loadConfig = (): any => {
     try {
         const current_config_path = shell.breeze.data_directory() + '/config.json';
-        const current_config = await shell.fs.read(current_config_path);
+        const current_config = shell.fs.read(current_config_path);
         return JSON.parse(current_config);
     } catch (error) {
         console.error('Failed to load config:', error);
@@ -102,12 +102,12 @@ export const loadConfig = async (): Promise<any> => {
     }
 };
 
-// Task 1.3.2: Convert saveConfig to async with error handling
-export const saveConfig = async (config: any): Promise<void> => {
+// Task 1.3.2: Convert saveConfig to sync with error handling
+export const saveConfig = (config: any): void => {
     try {
         const configPath = shell.breeze.data_directory() + '/config.json';
         const configJson = JSON.stringify(config, null, 4);
-        await shell.fs.write(configPath, configJson);
+        shell.fs.write(configPath, configJson);
     } catch (error) {
         console.error('Failed to save config:', error);
         throw new Error(`Failed to save configuration: ${error}`);
@@ -115,11 +115,11 @@ export const saveConfig = async (config: any): Promise<void> => {
 };
 
 // Plugin utilities
-// Task 1.3.3: Convert loadPlugins to async with error handling
-export const loadPlugins = async (): Promise<string[]> => {
+// Task 1.3.3: Convert loadPlugins to sync with error handling
+export const loadPlugins = (): string[] => {
     try {
         const scriptsPath = shell.breeze.data_directory() + '/scripts';
-        const files = await shell.fs.readdir(scriptsPath);
+        const files = shell.fs.readdir(scriptsPath);
         return files
             .map(v => v.split('/').pop())
             .filter(v => v.endsWith('.js') || v.endsWith('.disabled'))
@@ -159,10 +159,10 @@ export const isPluginInstalled = (plugin: any) => {
     return null;
 };
 
-// Task 1.3.4: Convert getPluginVersion to async with error handling
-export const getPluginVersion = async (installPath: string): Promise<string> => {
+// Task 1.3.4: Convert getPluginVersion to sync with error handling
+export const getPluginVersion = (installPath: string): string => {
     try {
-        const content = await shell.fs.read(installPath);
+        const content = shell.fs.read(installPath);
         const local_version_match = content.match(/\/\/ @version:\s*(.*)/);
         return local_version_match ? local_version_match[1] : t('plugins.not_installed');
     } catch (error) {
@@ -192,7 +192,9 @@ export const useTextTruncation = (text: string, maxWidth: number) => {
             // Try to truncate at word boundary
             const truncated = text.substring(0, maxChars);
             const lastSpaceIndex = truncated.lastIndexOf(' ');
-            if (lastSpaceIndex > maxChars * 0.8) {
+            if (lastSpaceIndex === -1) {
+                setTruncatedText(truncated + ellipsis);
+            } else if (lastSpaceIndex > maxChars * 0.8) {
                 setTruncatedText(truncated + ellipsis);
             } else {
                 setTruncatedText(truncated.substring(0, lastSpaceIndex) + ellipsis);
@@ -217,9 +219,7 @@ export const useResponsive = (width: number) => {
 
     useEffect(() => {
         const newBreakpoint = getBreakpoint(width);
-        if (newBreakpoint !== breakpoint) {
-            setBreakpoint(newBreakpoint);
-        }
+        setBreakpoint(prev => prev !== newBreakpoint ? newBreakpoint : prev);
     }, [width]);
 
     return {
@@ -241,8 +241,14 @@ export const usePerformanceMetrics = () => {
     useEffect(() => {
         let frameCount = 0;
         let lastTime = Date.now();
+        let rafId: number | null = null;
+        let cancelled = false;
 
         const measurePerformance = () => {
+            if (cancelled) {
+                return; // Bail out immediately if cancelled
+            }
+
             const now = Date.now();
             const delta = now - lastTime;
             const currentFps = Math.round(1000 / delta);
@@ -262,18 +268,21 @@ export const usePerformanceMetrics = () => {
 
             lastTime = now;
 
-            // Continue measuring
-            if (typeof requestAnimationFrame !== 'undefined') {
-                requestAnimationFrame(measurePerformance);
+            // Continue measuring if not cancelled
+            if (!cancelled && typeof requestAnimationFrame !== 'undefined') {
+                rafId = requestAnimationFrame(measurePerformance);
             }
         };
 
         // Start performance monitoring
-        requestAnimationFrame(measurePerformance);
+        rafId = requestAnimationFrame(measurePerformance);
 
         return () => {
-            // Cleanup function
-            // Note: Can't actually cancel requestAnimationFrame in this environment
+            // Cleanup function - cancel the RAF loop
+            cancelled = true;
+            if (rafId !== null && typeof cancelAnimationFrame !== 'undefined') {
+                cancelAnimationFrame(rafId);
+            }
         };
     }, []); // Only run once
 
@@ -333,45 +342,4 @@ export const optimizePerformance = () => {
         disableShadows: false,
         lowerQualityRendering: false
     };
-};
-
-// Task 3.1.3: Convert useVirtualScroll implementation details
-export const useVirtualScroll = (items: any[], itemHeight: number, containerHeight: number) => {
-    const [scrollTop, setScrollTop] = useState(0);
-
-    const totalHeight = items.length * itemHeight;
-    const startIndex = Math.floor(scrollTop / itemHeight);
-    const endIndex = Math.min(
-        items.length - 1,
-        Math.floor((scrollTop + containerHeight) / itemHeight)
-    );
-
-    const visibleItems = items.slice(startIndex, endIndex + 1).map((data, index) => ({
-        data,
-        index: startIndex + index,
-        top: (startIndex + index) * itemHeight,
-        id: (data as any).id || (data as any).name || index
-    }));
-
-    const onScroll = (e: any) => {
-        setScrollTop(e.currentTarget.scrollTop);
-    };
-
-    const paddingTop = startIndex * itemHeight;
-    const paddingBottom = (items.length - endIndex - 1) * itemHeight;
-
-    return {
-        visibleItems,
-        totalHeight,
-        paddingTop,
-        paddingBottom,
-        scrollProps: {
-            scrollTop,
-            onScroll
-        }
-    };
-};
-
-export const calculateOptimalHeight = (itemCount: number, itemHeight: number, maxHeight: number) => {
-    return Math.min(itemCount * itemHeight, maxHeight);
 };

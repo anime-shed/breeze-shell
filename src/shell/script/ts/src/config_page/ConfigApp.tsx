@@ -1,6 +1,6 @@
 import * as shell from "mshell";
 import { Button, Text } from "./components";
-import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, BREAKPOINTS, RESPONSIVE_SPACING } from "./constants";
+import { WINDOW_WIDTH, WINDOW_HEIGHT, SIDEBAR_WIDTH, RESPONSIVE_SPACING } from "./constants";
 import { saveConfig, loadConfig, useResponsive, useTranslation, usePerformanceMetrics } from "./utils";
 import {
     ContextMenuContext,
@@ -16,12 +16,13 @@ import ContextMenuConfig from "./ContextMenuConfig";
 import UpdatePage from "./UpdatePage";
 import PluginStore from "./PluginStore";
 import PluginConfig from "./PluginConfig";
-import { useState, useEffect, ReactNode } from "react";
+import { useState, useEffect, useCallback, ReactNode } from "react";
 
 interface AnimationSettings {
     duration?: number;
     easing?: string;
     type?: string;
+    // Allow additional properties for flexible configuration
     [key: string]: string | number | boolean | undefined;
 }
 
@@ -29,6 +30,7 @@ interface ThemeSettings {
     animation?: AnimationSettings;
     acrylic?: boolean;
     use_dwm_if_available?: boolean;
+    // Allow additional properties for flexible configuration
     [key: string]: AnimationSettings | string | number | boolean | undefined;
 }
 
@@ -39,12 +41,14 @@ interface ContextMenuSettings {
     show_settings_button?: boolean;
     ignore_owner_draw?: boolean;
     reverse_if_open_to_up?: boolean;
+    // Allow additional properties for flexible configuration
     [key: string]: ThemeSettings | string | number | boolean | undefined;
 }
 
 interface PluginInfo {
     name: string;
     enabled?: boolean;
+    // Allow additional properties for flexible configuration
     [key: string]: string | boolean | undefined;
 }
 
@@ -52,6 +56,7 @@ interface UpdateInfo {
     version?: string;
     download_url?: string;
     release_notes?: string;
+    // Allow additional properties for flexible configuration
     [key: string]: string | undefined;
 }
 
@@ -60,6 +65,7 @@ interface PluginIndexEntry {
     description?: string;
     version?: string;
     author?: string;
+    // Allow additional properties for flexible configuration
     [key: string]: string | undefined;
 }
 
@@ -68,6 +74,7 @@ interface GlobalConfig {
     debug_console?: boolean;
     plugin_load_order?: PluginInfo[];
     language?: string;
+    // Allow additional properties for flexible configuration
     [key: string]: ContextMenuSettings | PluginInfo[] | string | boolean | undefined;
 }
 
@@ -143,9 +150,6 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
 
             const parsed = await loadConfig();
 
-            // Small minimum visible duration to prevent flashing
-            await new Promise(resolve => setTimeout(resolve, 100));
-
             setConfig(parsed);
             setContextMenuConfig(parsed.context_menu || {});
             setDebugConsole(parsed.debug_console || false);
@@ -179,28 +183,28 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
     // Task 2.4.2: Use responsive hook for breakpoint-aware styling
     const responsive = useResponsive(windowSize.width);
 
-    useEffect(() => {
-        const handleResize = () => {
-            try {
-                // Check if shell.window is available and has size methods
-                if (shell && (shell as any).window && typeof (shell as any).window.getSize === 'function') {
-                    const size = (shell as any).window.getSize();
-                    setWindowSize({ width: size.width, height: size.height });
-                } else {
-                    // Fallback: use provided initial dimensions
-                    setWindowSize({ width: initialWidth, height: initialHeight });
-                }
-
-                // Detect DPI scaling if available
-                if (shell && (shell as any).window && typeof (shell as any).window.getDPIScale === 'function') {
-                    const scale = (shell as any).window.getDPIScale();
-                    setDpiScale(scale || 1.0);
-                }
-            } catch (error) {
-                console.error('Error handling window resize:', error);
+    const handleResize = useCallback(() => {
+        try {
+            // Check if shell.window is available and has size methods
+            if (shell && (shell as any).window && typeof (shell as any).window.getSize === 'function') {
+                const size = (shell as any).window.getSize();
+                setWindowSize({ width: size.width, height: size.height });
+            } else {
+                // Fallback: use provided initial dimensions
+                setWindowSize({ width: initialWidth, height: initialHeight });
             }
-        };
 
+            // Detect DPI scaling if available
+            if (shell && (shell as any).window && typeof (shell as any).window.getDPIScale === 'function') {
+                const scale = (shell as any).window.getDPIScale();
+                setDpiScale(scale || 1.0);
+            }
+        } catch (error) {
+            console.error('Error handling window resize:', error);
+        }
+    }, [initialWidth, initialHeight]);
+
+    useEffect(() => {
         // Initial size detection
         handleResize();
 
@@ -218,7 +222,7 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
 
         // Return empty cleanup if not supported
         return () => { };
-    }, [initialWidth, initialHeight]);
+    }, [handleResize]);
 
     // Task 1.3.5: Update callers to handle async functions
     const updateContextMenu = async (newConfig: ContextMenuSettings) => {

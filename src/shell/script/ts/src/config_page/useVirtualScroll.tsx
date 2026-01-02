@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 
 // Task 3.1.1: Create useVirtualScroll hook for large dataset performance
 export interface VirtualScrollItem {
@@ -10,6 +10,8 @@ export interface VirtualScrollItem {
 export interface VirtualScrollResult {
     visibleItems: VirtualScrollItem[];
     totalHeight: number;
+    paddingTop: number;
+    paddingBottom: number;
     scrollProps: {
         scrollTop: number;
         onScroll: (scrollTop: number) => void;
@@ -23,7 +25,6 @@ export const useVirtualScroll = (
     startIndex: number = 0
 ): VirtualScrollResult => {
     const [scrollTop, setScrollTop] = useState(0);
-    const [containerRef, setContainerRef] = useState<any>(null);
     
     // Convert items to virtual scroll items
     const virtualItems: VirtualScrollItem[] = useMemo(() => {
@@ -53,23 +54,21 @@ export const useVirtualScroll = (
 
     const totalHeight = virtualItems.length * itemHeight;
 
+    // Calculate padding for virtual scrolling
+    const paddingTop = visibleRange.start * itemHeight;
+    const paddingBottom = Math.max(0, totalHeight - paddingTop - (visibleItems.length * itemHeight));
+
     // Handle scroll events
     const handleScroll = (e: any) => {
         const newScrollTop = e.target.scrollTop;
         setScrollTop(newScrollTop);
     };
 
-    // Initialize container ref and scroll position
-    useEffect(() => {
-        const container = containerRef;
-        if (container) {
-            container.scrollTop = scrollTop;
-        }
-    }, [containerRef, scrollTop]);
-
     return {
         visibleItems,
         totalHeight,
+        paddingTop,
+        paddingBottom,
         scrollProps: {
             scrollTop,
             onScroll: handleScroll
@@ -89,7 +88,7 @@ export const scrollToIndex = (
 
     const targetScrollTop = index * itemHeight;
     const startScrollTop = container.scrollTop;
-    const distance = Math.abs(targetScrollTop - startScrollTop);
+    const distance = targetScrollTop - startScrollTop;
     
     // Simple smooth scroll animation
     const startTime = Date.now();
@@ -106,14 +105,4 @@ export const scrollToIndex = (
     };
     
     requestAnimationFrame(animateScroll);
-};
-
-// Performance optimization: calculate optimal item height
-export const calculateOptimalHeight = (
-    items: any[],
-    minVisibleItems: number = 5
-): number => {
-    // Calculate based on available height and desired visible items
-    // This can be tuned based on typical content
-    return Math.max(50, Math.min(100, Math.floor(600 / minVisibleItems)));
 };

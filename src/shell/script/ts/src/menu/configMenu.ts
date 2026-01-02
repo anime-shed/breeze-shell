@@ -3,8 +3,8 @@ import { PLUGIN_SOURCES } from "../plugin/constants"
 import { get_async } from "../utils/network"
 import { splitIntoLines } from "../utils/string"
 import { getNestedValue, setNestedValue } from "../utils/object"
-import { config_dir_watch_callbacks } from "../plugin/core"
-import { languages, ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
+
+import { ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
 import { t, currentLanguage } from "../shared/i18n"
 
 let cached_plugin_index: any = null
@@ -21,7 +21,7 @@ if (shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll')) {
 let current_source = 'Enlysure'
 
 export const makeBreezeConfigMenu = (mainMenu) => {
-    const currentLang = currentLanguage()
+    
 
     const fg_color = shell.breeze.is_light_theme() ? 'black' : 'white'
     const ICON_CHECKED_COLORED = ICON_CHECKED.replaceAll('currentColor', fg_color)

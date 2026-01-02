@@ -1,7 +1,8 @@
 import * as shell from "mshell";
 import { Button, Text } from "./components";
 import { UpdateDataContext, NotificationContext, PluginSourceContext } from "./contexts";
-import { useTranslation, useTextTruncation, useVirtualScroll, calculateOptimalHeight } from "./utils";
+import { useTranslation, useTextTruncation } from "./utils";
+import { useVirtualScroll } from "./useVirtualScroll";
 import { PLUGIN_SOURCES } from "./constants";
 import { memo, useContext, useEffect, useState, useRef } from "react";
 
@@ -30,6 +31,8 @@ const PluginVirtualItem = memo(({
 }) => {
     const { t } = useTranslation();
     const status = plugin;
+    // Call hook at top level - this is correct
+    const truncatedName = useTextTruncation(plugin.name, 300);
 
     return (
         <flex
@@ -42,7 +45,7 @@ const PluginVirtualItem = memo(({
         >
             <flex gap={10} alignItems="stretch">
                 <Text fontSize={18} maxWidth={300}>
-                    {useTextTruncation(plugin.name, 300)}
+                    {truncatedName}
                 </Text>
                 <Text>{plugin.description}</Text>
             </flex>
@@ -59,6 +62,42 @@ const PluginVirtualItem = memo(({
     );
 });
 
+// New component for traditional rendering (non-virtual scroll)
+const PluginListItem = memo(({
+    plugin,
+    installingPlugins,
+    onInstall
+}: {
+    plugin: any;
+    installingPlugins: Set<string>;
+    onInstall: (plugin: any) => void;
+}) => {
+    const { t } = useTranslation();
+    const { installed, localVersion: local_version, hasUpdate: have_update } = plugin;
+    // Call hook at top level - this is correct
+    const truncatedName = useTextTruncation(plugin.name, 300);
+
+    return (
+        <flex key={plugin.name} horizontal alignItems="center">
+            <flex autoSize={false} width={4} height={20} borderRadius={2} backgroundColor={
+                installed ? (have_update ? '#FFA500' : '#2979FF') : (shell.breeze.is_light_theme() ? '#C0C0C0aa' : '#505050aa')
+            } />
+            <flex gap={10} padding={10} borderRadius={8}
+                flexGrow={1} horizontal>
+                <flex gap={10} alignItems="stretch" flexGrow={1}>
+                    <Text fontSize={18} maxWidth={300}>{truncatedName}</Text>
+                    <Text>{plugin.description}</Text>
+                </flex>
+                <flex gap={10} alignItems="center" flexShrink={0}>
+                    <Button onClick={() => onInstall(plugin)}>
+                        <Text>{installingPlugins.has(plugin.name) ? t("plugins.installing") : (installed ? (have_update ? t("plugins.update", { from: local_version, to: plugin.version }) : t('plugins.installed')) : t('plugins.install'))}</Text>
+                    </Button>
+                </flex>
+            </flex>
+        </flex>
+    );
+});
+
 // Task 3.2.1: Add bounded plugin status cache with size limits
 const CACHE_SIZE_LIMIT = 100; // Maximum cached plugins
 const MAX_CACHE_AGE = 300000; // 5 minutes in milliseconds
@@ -69,7 +108,7 @@ const PluginStore = memo(() => {
     const { currentPluginSource } = useContext(PluginSourceContext)!;
     const { t } = useTranslation();
 
-    const [plugins, setPlugins] = useState<PluginDefinition[]>([]);
+    const [,setPlugins] = useState<PluginDefinition[]>([]);
     const [installingPlugins, setInstallingPlugins] = useState<Set<string>>(new Set());
     const [pluginStatuses, setPluginStatuses] = useState<Record<string, PluginStatus>>({});
     const [loadingStatuses, setLoadingStatuses] = useState(false);
@@ -85,16 +124,19 @@ const PluginStore = memo(() => {
 
         setPluginStatuses(prevStatuses => {
             const newStatuses = { ...prevStatuses };
+            const keysToDelete: string[] = [];
             // Remove old entries
             for (const [key, timestamp] of timestamps) {
                 if (now - timestamp > MAX_CACHE_AGE) {
-                    timestamps.delete(key);
+                    keysToDelete.push(key);
                     // Clear cached status for old plugin
                     if (newStatuses[key]) {
                         delete newStatuses[key];
                     }
                 }
             }
+            keysToDelete.forEach(key => timestamps.delete(key));
+
             // If cache size exceeds limit, remove oldest entries until within limit
             const currentCacheSize = Object.keys(newStatuses).length;
             if (currentCacheSize > CACHE_SIZE_LIMIT) {
@@ -102,13 +144,17 @@ const PluginStore = memo(() => {
                     .sort(([, timeA], [, timeB]) => timeA - timeB)
                     .map(([key]) => key);
 
+                const keysToRemove: string[] = [];
                 for (let i = 0; i < currentCacheSize - CACHE_SIZE_LIMIT; i++) {
                     const keyToRemove = sortedKeys[i];
                     if (keyToRemove) {
-                        delete newStatuses[keyToRemove];
-                        timestamps.delete(keyToRemove);
+                        keysToRemove.push(keyToRemove);
                     }
                 }
+                keysToRemove.forEach(key => {
+                    delete newStatuses[key];
+                    timestamps.delete(key);
+                });
             }
             return newStatuses;
         });
@@ -256,7 +302,7 @@ const PluginStore = memo(() => {
     const itemHeight = 60; // Standard plugin item height
     const containerHeight = 500; // Viewport height
 
-    const { visibleItems, totalHeight, paddingTop, paddingBottom, scrollProps } = useVirtualScroll(
+    const { visibleItems, paddingTop, paddingBottom, scrollProps } = useVirtualScroll(
         pluginsWithStatus,
         itemHeight,
         containerHeight
@@ -295,30 +341,14 @@ const PluginStore = memo(() => {
                 ) : (
                     // Traditional rendering for smaller lists
                     <flex enableScrolling={true} flexGrow={1} alignItems="stretch">
-                        {pluginsWithStatus.map((plugin: any) => {
-                            const status = plugin;
-                            const { installed, localVersion: local_version, hasUpdate: have_update } = status;
-
-                            return (
-                                <flex key={plugin.name} horizontal alignItems="center">
-                                    <flex autoSize={false} width={4} height={20} borderRadius={2} backgroundColor={
-                                        installed ? (have_update ? '#FFA500' : '#2979FF') : (shell.breeze.is_light_theme() ? '#C0C0C0aa' : '#505050aa')
-                                    } />
-                                    <flex gap={10} padding={10} borderRadius={8}
-                                        flexGrow={1} horizontal>
-                                        <flex gap={10} alignItems="stretch" flexGrow={1}>
-                                            <Text fontSize={18} maxWidth={300}>{useTextTruncation(plugin.name, 300)}</Text>
-                                            <Text>{plugin.description}</Text>
-                                        </flex>
-                                        <flex gap={10} alignItems="center" flexShrink={0}>
-                                            <Button onClick={() => installPlugin(plugin)}>
-                                                <Text>{installingPlugins.has(plugin.name) ? t("plugins.installing") : (installed ? (have_update ? t("plugins.update", { from: local_version, to: plugin.version }) : t('plugins.installed')) : t('plugins.install'))}</Text>
-                                            </Button>
-                                        </flex>
-                                    </flex>
-                                </flex>
-                            );
-                        })}
+                        {pluginsWithStatus.map((plugin: any) => (
+                            <PluginListItem
+                                key={plugin.name}
+                                plugin={plugin}
+                                installingPlugins={installingPlugins}
+                                onInstall={installPlugin}
+                            />
+                        ))}
                     </flex>
                 )}
             </flex>
