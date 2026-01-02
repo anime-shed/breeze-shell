@@ -3,7 +3,7 @@ import { showMenu } from "./utils";
 import { Text, PluginItem } from "./components";
 import { PluginLoadOrderContext } from "./contexts";
 import { useTranslation, loadPlugins, togglePlugin, deletePlugin, } from "./utils";
-import { memo, useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState, useCallback, useRef } from "react";
 
 const PluginConfig = memo(() => {
     const { order, update } = useContext(PluginLoadOrderContext)!;
@@ -13,13 +13,11 @@ const PluginConfig = memo(() => {
     const [enabledPlugins, setEnabledPlugins] = useState<Set<string>>(new Set());
 
     const [loading, setLoading] = useState(false);
+    const loadingRef = useRef(false);
 
-    useEffect(() => {
-        reloadPluginsList();
-    }, []);
-
-    const reloadPluginsList = async () => {
-        if (loading) return; // Prevent concurrent reloads
+    const reloadPluginsList = useCallback(async () => {
+        if (loadingRef.current) return; // Prevent concurrent reloads
+        loadingRef.current = true;
         setLoading(true);
         // Allow UI to render loading state
         await new Promise(r => setTimeout(r, 0));
@@ -46,9 +44,14 @@ const PluginConfig = memo(() => {
         } catch (error) {
             console.error('Failed to reload plugins list:', error);
         } finally {
+            loadingRef.current = false;
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        reloadPluginsList();
+    }, [reloadPluginsList]);
 
     const handleTogglePlugin = async (name: string) => {
         togglePlugin(name);

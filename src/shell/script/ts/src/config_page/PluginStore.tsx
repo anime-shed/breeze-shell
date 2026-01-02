@@ -4,7 +4,7 @@ import { UpdateDataContext, NotificationContext, PluginSourceContext } from "./c
 import { useTranslation, useTextTruncation } from "./utils";
 import { useVirtualScroll } from "./useVirtualScroll";
 import { PLUGIN_SOURCES } from "./constants";
-import { memo, useContext, useEffect, useState, useRef } from "react";
+import { memo, useContext, useEffect, useState, useRef, useCallback } from "react";
 
 type PluginStatus = {
     installed: boolean;
@@ -108,7 +108,7 @@ const PluginStore = memo(() => {
     const { currentPluginSource } = useContext(PluginSourceContext)!;
     const { t } = useTranslation();
 
-    const [,setPlugins] = useState<PluginDefinition[]>([]);
+    const [, _setPlugins] = useState<PluginDefinition[]>([]);
     const [installingPlugins, setInstallingPlugins] = useState<Set<string>>(new Set());
     const [pluginStatuses, setPluginStatuses] = useState<Record<string, PluginStatus>>({});
     const [loadingStatuses, setLoadingStatuses] = useState(false);
@@ -160,7 +160,7 @@ const PluginStore = memo(() => {
         });
     };
 
-    const loadPluginStatuses = async () => {
+    const loadPluginStatuses = useCallback(async () => {
         cleanupCache(); // Periodic cleanup
         const statuses: Record<string, PluginStatus> = {};
 
@@ -240,18 +240,19 @@ const PluginStore = memo(() => {
             setPluginStatuses(prev => ({ ...prev, ...statuses }));
             setLoadingStatuses(false);
         }
-    };
+    }, [updateData?.plugins, t, setErrorMessage, setLoadingStatuses, setPluginStatuses, cacheTimestamps]);
 
     useEffect(() => {
         loadPluginStatuses();
-    }, [updateData?.plugins, t]);
+    }, [updateData?.plugins, t, loadPluginStatuses]);
 
     // Task 3.2.4: Add cache cleanup on unmount
     useEffect(() => {
+        const timestampsRef = cacheTimestamps.current;
         // Cleanup on unmount
         return () => {
             cleanupCache();
-            cacheTimestamps.current.clear();
+            timestampsRef.clear();
         };
     }, []);
 
@@ -308,7 +309,7 @@ const PluginStore = memo(() => {
         containerHeight
     );
 
-    const handlePluginClick = (plugin: any, index: number) => {
+    const handlePluginClick = (plugin: any, _index: number) => {
         installPlugin(plugin);
     };
 

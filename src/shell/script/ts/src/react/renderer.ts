@@ -206,7 +206,7 @@ const HostConfig: Reconciler.HostConfig<
         return null;
     },
 
-    resetAfterCommit(rootContainer: RootContainer): void {
+    resetAfterCommit(_rootContainer: RootContainer): void {
 
     },
 
@@ -271,7 +271,7 @@ const HostConfig: Reconciler.HostConfig<
         return Object.keys(updates).length > 0 ? updates : null;
     },
 
-    shouldSetTextContent(type: Type, props: Props): boolean {
+    shouldSetTextContent(_type: Type, _props: Props): boolean {
         return false;
     },
     createTextInstance(
@@ -338,7 +338,7 @@ const HostConfig: Reconciler.HostConfig<
         type: Type,
         oldProps: Props,
         newProps: Props,
-        internalHandle: any
+        _internalHandle: any
     ): void {
         for (const key in newProps) {
             if (key === 'children') {

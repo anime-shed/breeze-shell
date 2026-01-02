@@ -1,6 +1,6 @@
 import * as shell from "mshell";
 import { showMenu } from "./utils";
-import { memo, useEffect, useContext } from "react";
+import { memo, useEffect, useContext, useCallback } from "react";
 import { Button, SidebarItem, Text, iconElement } from "./components";
 import {
     ICON_BREEZE,
@@ -25,7 +25,7 @@ const Sidebar = memo(({
     const { t } = useTranslation();
     const { setUpdateData } = useContext(UpdateDataContext)!;
     const { errorMessage, setErrorMessage, loadingMessage, setLoadingMessage } = useContext(NotificationContext)!;
-    const { currentPluginSource, updatePluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
+    const { currentPluginSource, setCurrentPluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
 
     useEffect(() => {
         if (errorMessage) {
@@ -36,8 +36,8 @@ const Sidebar = memo(({
         }
     }, [errorMessage, setErrorMessage]);
 
-    const handleSourceChange = (sourceName: string) => {
-        updatePluginSource(sourceName);
+    const handleSourceChange = useCallback((sourceName: string) => {
+        setCurrentPluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
 
@@ -50,11 +50,11 @@ const Sidebar = memo(({
             setErrorMessage(t("common.load_failed"));
             setLoadingMessage(null);
         });
-    };
+    }, [setCurrentPluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);
 
     useEffect(() => {
         handleSourceChange(currentPluginSource);
-    }, [currentPluginSource]);
+    }, [currentPluginSource, handleSourceChange]);
 
     return (
         <flex

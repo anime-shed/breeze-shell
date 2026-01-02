@@ -5,7 +5,7 @@ import { splitIntoLines } from "../utils/string"
 import { getNestedValue, setNestedValue } from "../utils/object"
 
 import { ICON_EMPTY, ICON_CHECKED, ICON_CHANGE, ICON_REPAIR } from "./constants"
-import { t, currentLanguage } from "../shared/i18n"
+import { t } from "../shared/i18n"
 
 let cached_plugin_index: any = null
 
@@ -13,8 +13,8 @@ let cached_plugin_index: any = null
 if (shell.fs.exists(shell.breeze.data_directory() + '/shell_old.dll')) {
     try {
         shell.fs.remove(shell.breeze.data_directory() + '/shell_old.dll')
-    } catch (e) {
-        shell.println('Failed to remove old shell.dll: ', e)
+    } catch (_e) {
+        shell.println('Failed to remove old shell.dll: ', _e)
     }
 }
 
@@ -99,7 +99,7 @@ export const makeBreezeConfigMenu = (mainMenu) => {
                                                 downloadNewShell()
                                             } catch (e) {
                                                 upd.set_data({
-                                                    name: t('status.updateFailed') + ': ' + t('error.cannotMoveFile'),
+                                                    name: t('status.updateFailed') + ': ' + e,
                                                     icon_svg: ICON_REPAIR_COLORED,
                                                     disabled: false
                                                 })
