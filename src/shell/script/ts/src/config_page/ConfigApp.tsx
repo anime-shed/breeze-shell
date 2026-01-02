@@ -162,6 +162,7 @@ const getShellWindow = (): ShellWindow | undefined => {
 };
 
 export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_HEIGHT }: { initialWidth?: number, initialHeight?: number }) => {
+    shell.println(`[ConfigApp] Render start. Width: ${initialWidth}, Height: ${initialHeight}`);
     const { t } = useTranslation();
     const [activePage, setActivePage] = useState('context-menu');
     const [contextMenuConfig, setContextMenuConfig] = useState<ContextMenuSettings>({});
@@ -297,13 +298,9 @@ export const ConfigApp = ({ initialWidth = WINDOW_WIDTH, initialHeight = WINDOW_
     };
 
     const updatePluginSource = (source: string) => {
-        if (config.plugin_source === source) {
-            return;
-        }
+        if (source === currentPluginSource) return; // Prevent recursive updates
         setCurrentPluginSource(source);
-        const newGlobal = { ...config, plugin_source: source };
-        setConfig(newGlobal);
-        saveConfigDebounced(newGlobal);
+        saveConfigDebounced({ ...config, plugin_source: source });
     };
 
     const providerValues = {

@@ -1,6 +1,6 @@
 import * as shell from "mshell";
 import { showMenu } from "./utils";
-import { memo, useEffect, useContext, useCallback } from "react";
+import { memo, useEffect, useContext, useCallback, useRef } from "react";
 import { Button, SidebarItem, Text, iconElement } from "./components";
 import {
     ICON_BREEZE,
@@ -37,7 +37,15 @@ const Sidebar = memo(({
         }
     }, [errorMessage, setErrorMessage]);
 
+    // Track last fetched source to prevent loops
+    const lastFetchedSource = useRef<string | null>(null);
+
     const handleSourceChange = useCallback((sourceName: string) => {
+        if (lastFetchedSource.current === sourceName) {
+            return;
+        }
+        lastFetchedSource.current = sourceName;
+        
         updatePluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
@@ -69,7 +77,10 @@ const Sidebar = memo(({
     }, [updatePluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);
 
     useEffect(() => {
-        handleSourceChange(currentPluginSource);
+        // Only trigger initial fetch if we haven't fetched this source yet
+        if (currentPluginSource && lastFetchedSource.current !== currentPluginSource) {
+            handleSourceChange(currentPluginSource);
+        }
     }, [currentPluginSource, handleSourceChange]);
 
     return (

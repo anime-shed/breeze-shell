@@ -102,13 +102,18 @@ export const Text = memo(({
     maxWidth?: number;
 }) => {
     const isLightTheme = breeze.is_light_theme();
+    // Only pass maxWidth if it's non-negative, assuming -1 or negative might be problematic for the native widget setter
+    const textProps: any = {
+        text: children,
+        fontSize: fontSize,
+        color: isLightTheme ? '#000000ff' : '#ffffffff'
+    };
+    if (maxWidth >= 0) {
+        textProps.maxWidth = maxWidth;
+    }
+    
     return (
-        <text
-            text={children}
-            fontSize={fontSize}
-            maxWidth={maxWidth}
-            color={isLightTheme ? '#000000ff' : '#ffffffff'}
-        />
+        <text {...textProps} />
     );
 });
 
