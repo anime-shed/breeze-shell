@@ -240,7 +240,7 @@ export const usePerformanceMetrics = () => {
     useEffect(() => {
         let frameCount = 0;
         let lastTime = Date.now();
-        let rafId: number | null = null;
+        let timerId: ReturnType<typeof shell.infra.setTimeout> | null = null;
         let cancelled = false;
 
         const measurePerformance = () => {
@@ -268,19 +268,19 @@ export const usePerformanceMetrics = () => {
             lastTime = now;
 
             // Continue measuring if not cancelled
-            if (!cancelled && typeof requestAnimationFrame !== 'undefined') {
-                rafId = requestAnimationFrame(measurePerformance);
+            if (!cancelled) {
+                timerId = shell.infra.setTimeout(measurePerformance, 16);
             }
         };
 
         // Start performance monitoring
-        rafId = requestAnimationFrame(measurePerformance);
+        timerId = shell.infra.setTimeout(measurePerformance, 16);
 
         return () => {
-            // Cleanup function - cancel the RAF loop
+            // Cleanup function - cancel the timer
             cancelled = true;
-            if (rafId !== null && typeof cancelAnimationFrame !== 'undefined') {
-                cancelAnimationFrame(rafId);
+            if (timerId !== null) {
+                shell.infra.clearTimeout(timerId);
             }
         };
     }, []); // Only run once
@@ -300,10 +300,10 @@ export const usePerformanceMetrics = () => {
         };
 
         // Check memory every 5 seconds
-        const interval = setInterval(checkMemory, 5000);
+        const interval = shell.infra.setInterval(checkMemory, 5000);
 
         return () => {
-            clearInterval(interval);
+            shell.infra.clearInterval(interval);
         };
     }, []);
 
@@ -314,7 +314,7 @@ export const usePerformanceMetrics = () => {
         slowFrames,
         isPerformanceIssue: fps < 55 || frameDrops > 10,
 
-        
+
         ...(typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost' ? {
             showPerformanceWarning: true
         } : {})
@@ -324,13 +324,9 @@ export const usePerformanceMetrics = () => {
 
 export const reportPerformanceIssue = (type: 'low-fps' | 'high-memory' | 'frame-drops', details: string) => {
     console.warn(`[Performance Issue] ${type}: ${details}`);
-
-    if (typeof shell !== 'undefined' && (shell as any).notify) {
-        (shell as any).notify({
-            title: 'Performance Warning',
-            message: `${type}: ${details}`,
-            type: 'warning'
-        });
+    const g: any = (typeof globalThis !== 'undefined') ? (globalThis as any) : {};
+    if (typeof g.notification !== 'undefined' && typeof g.notification.send_title_text === 'function') {
+        g.notification.send_title_text('Performance Warning', `${type}: ${details}`, '');
     }
 };
 

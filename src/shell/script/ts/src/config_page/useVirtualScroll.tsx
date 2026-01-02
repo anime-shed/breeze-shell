@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import * as shell from "mshell";
 
 
 export interface VirtualScrollItem {
@@ -76,9 +77,14 @@ export const useVirtualScroll = (
     };
 };
 
+// Interface for scroll container
+interface ScrollContainer {
+    scrollTop: number;
+}
+
 // Utility for scroll position management
 export const scrollToIndex = (
-    containerRef: any,
+    containerRef: ScrollContainer | null,
     itemHeight: number,
     index: number,
     duration: number = 300
@@ -100,9 +106,9 @@ export const scrollToIndex = (
         container.scrollTop = currentScrollTop;
 
         if (progress < 1) {
-            requestAnimationFrame(animateScroll);
+            shell.infra.setTimeout(animateScroll, 16);
         }
     };
 
-    requestAnimationFrame(animateScroll);
+    shell.infra.setTimeout(animateScroll, 16);
 };
