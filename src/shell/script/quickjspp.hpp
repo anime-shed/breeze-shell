@@ -2150,8 +2150,12 @@ template <class T> struct js_traits<std::unordered_map<std::string, T>> {
         for (uint32_t i = 0; i < prop_count; i++) {
             const char *key = JS_AtomToCString(ctx, props[i].atom);
             if (key) {
+                struct KeyGuard {
+                    JSContext *ctx;
+                    const char *key;
+                    ~KeyGuard() { JS_FreeCString(ctx, key); }
+                } key_guard{ctx, key};
                 map[key] = static_cast<T>(obj[key]);
-                JS_FreeCString(ctx, key);
             }
             JS_FreeAtom(ctx, props[i].atom);
             guard.freed_until = i + 1;
@@ -2211,8 +2215,12 @@ template <class T> struct js_traits<std::map<std::string, T>> {
         for (uint32_t i = 0; i < prop_count; i++) {
             const char *key = JS_AtomToCString(ctx, props[i].atom);
             if (key) {
+                struct KeyGuard {
+                    JSContext *ctx;
+                    const char *key;
+                    ~KeyGuard() { JS_FreeCString(ctx, key); }
+                } key_guard{ctx, key};
                 map[key] = static_cast<T>(obj[key]);
-                JS_FreeCString(ctx, key);
             }
             JS_FreeAtom(ctx, props[i].atom);
             guard.freed_until = i + 1;
