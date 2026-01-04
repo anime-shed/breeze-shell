@@ -9,8 +9,8 @@
 #include <regex>
 #include <set>
 
+#include "rfl.hpp"
 #include "rfl/json.hpp"
-#include "yyjson.h"
 #include <cstring>
 
 #include "windows.h"
@@ -45,6 +45,16 @@ void ensure_file(const std::filesystem::path& path, const unsigned char* data, s
         std::cerr << "Failed to extract locale " << path << ": " << e.what() << std::endl;
     }
 }
+
+struct LocaleMetadata {
+    std::optional<std::string> direction;
+};
+
+struct LocaleFile {
+    rfl::Rename<"$metadata", std::optional<LocaleMetadata>> metadata;
+    rfl::ExtraFields<std::string> translations;
+};
+
 }
 
 i18n_manager& i18n_manager::instance() {
@@ -251,52 +261,33 @@ bool i18n_manager::load_locale(const std::string& lang) {
     std::string json_str((std::istreambuf_iterator<char>(file)),
                           std::istreambuf_iterator<char>());
     
-    // Use yyjson for dynamic type handling (supports mixed-type JSON)
-    yyjson_doc* doc = yyjson_read(json_str.c_str(), json_str.length(), 0);
-    if (!doc) {
-        std::cerr << "Failed to parse locale file: " << locale_path << std::endl;
+    // Use reflect-cpp for JSON parsing
+    auto result = rfl::json::read<LocaleFile>(json_str);
+    if (!result) {
+        std::cerr << "Failed to parse locale file: " << locale_path << " Error: " << result.error().what() << std::endl;
         return false;
     }
     
-    yyjson_val* root = yyjson_doc_get_root(doc);
-    if (!yyjson_is_obj(root)) {
-        std::cerr << "Locale root is not an object: " << locale_path << std::endl;
-        yyjson_doc_free(doc);
-        return false;
-    }
-    
+    const auto& locale_data = result.value();
     auto& lang_translations = translations_[lang];
     
-    size_t idx, max;
-    yyjson_val *key, *val;
-    yyjson_obj_foreach(root, idx, max, key, val) {
-        const char* key_str = yyjson_get_str(key);
+    // Copy translations
+    for (const auto& [key, val] : locale_data.translations) {
+        // Skip metadata keys just in case, though they should be handled by 'metadata' field
+        if (key.starts_with("$metadata")) continue;
         
-        if (strcmp(key_str, "$metadata") == 0 && yyjson_is_obj(val)) {
-            // Extract metadata with flattened keys (e.g., $metadata.direction)
-            size_t m_idx, m_max;
-            yyjson_val *m_key, *m_val;
-            yyjson_obj_foreach(val, m_idx, m_max, m_key, m_val) {
-                if (yyjson_is_str(m_val)) {
-                    std::string flat_key = std::string("$metadata.") + yyjson_get_str(m_key);
-                    lang_translations[flat_key] = yyjson_get_str(m_val);
-                }
-            }
-        } else if (yyjson_is_str(val)) {
-            // Regular translation key
-            lang_translations[key_str] = yyjson_get_str(val);
-            if (!std::string(key_str).starts_with("$metadata")) {
-                core_keys_.insert(key_str);
-            }
-        } else {
-            // Skip non-string values (arrays, numbers, nested objects)
-            std::cerr << "Warning: Skipping non-string value for key: " << key_str << std::endl;
+        lang_translations[key] = val;
+        core_keys_.insert(key);
+    }
+    
+    // Handle metadata
+    if (locale_data.metadata.value()) {
+        if (locale_data.metadata.value()->direction) {
+             lang_translations["$metadata.direction"] = *locale_data.metadata.value()->direction;
         }
     }
     
     dbgout("Loaded locale: {} ({} translations)", lang, lang_translations.size());
-    // Ensure document is freed before returning
-    yyjson_doc_free(doc);
     return true;
 }
 
@@ -332,46 +323,31 @@ void i18n_manager::load_plugin_locales() {
                 std::string json_str((std::istreambuf_iterator<char>(file)),
                                       std::istreambuf_iterator<char>());
                 
-                // Use yyjson for dynamic type handling
-                yyjson_doc* doc = yyjson_read(json_str.c_str(), json_str.length(), 0);
-                if (!doc) {
-                    std::cerr << "Failed to parse plugin locale file: " << lang_file.path() << std::endl;
+                // Use reflect-cpp to parse into LocaleFile
+                // We reuse LocaleFile struct as it handles the structure we expect
+                auto result = rfl::json::read<LocaleFile>(json_str);
+                if (!result) {
+                    std::cerr << "Failed to parse plugin locale file: " << lang_file.path() << " Error: " << result.error().what() << std::endl;
                     continue;
                 }
                 
-                yyjson_val* root = yyjson_doc_get_root(doc);
-                if (!yyjson_is_obj(root)) {
-                    std::cerr << "Plugin locale root is not an object: " << lang_file.path() << std::endl;
-                    yyjson_doc_free(doc);
-                    continue;
-                }
+                const auto& locale_data = result.value();
                 
-                size_t idx, max;
-                yyjson_val *key, *val;
-                yyjson_obj_foreach(root, idx, max, key, val) {
-                    const char* key_str = yyjson_get_str(key);
-                    
+                for (const auto& [key, val] : locale_data.translations) {
                     // Skip metadata keys
-                    if (strcmp(key_str, "$metadata") == 0 || std::string(key_str).starts_with("$metadata")) {
-                        continue;
-                    }
-                    
-                    // Only process string values
-                    if (!yyjson_is_str(val)) {
+                    if (key.starts_with("$metadata")) {
                         continue;
                     }
                     
                     // Warn if attempting to override core key
-                    if (core_keys_.find(key_str) != core_keys_.end()) {
+                    if (core_keys_.find(key) != core_keys_.end()) {
                         std::cerr << "Warning: Plugin " << plugin_name 
-                                  << " attempted to override core key: " << key_str << std::endl;
+                                  << " attempted to override core key: " << key << std::endl;
                         continue;
                     }
                     
-                    plugin_translations_[lang][key_str] = yyjson_get_str(val);
+                    plugin_translations_[lang][key] = val;
                 }
-                
-                yyjson_doc_free(doc);
             }
         }
     } catch (const std::exception& e) {

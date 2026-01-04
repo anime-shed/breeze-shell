@@ -51,7 +51,6 @@ export {
 
 // Export constants
 export {
-    languages,
     PLUGIN_SOURCES,
     ICON_CONTEXT_MENU,
     ICON_UPDATE,

@@ -3,1350 +3,1346 @@
 
 declare module 'mshell' {
 
-    export class breeze_ui {
-    }
-    namespace breeze_ui {
-        export class js_widget {
-            get x(): number;
-            set x(value: number);
-            get y(): number;
-            set y(value: number);
-            get width(): number;
-            set width(value: number);
-            get height(): number;
-            set height(value: number);
-            children(): Array<breeze_ui.js_widget>
-            /**
-             * 
-             * @param child: breeze_ui.js_widget
-             * @returns void
-             */
-            append_child(child: breeze_ui.js_widget): void
-            /**
-             * 
-             * @param child: breeze_ui.js_widget
-             * @returns void
-             */
-            prepend_child(child: breeze_ui.js_widget): void
-            /**
-             * 
-             * @param child: breeze_ui.js_widget
-             * @returns void
-             */
-            remove_child(child: breeze_ui.js_widget): void
-            /**
-             * 
-             * @param child: breeze_ui.js_widget
-             * @param after_index: number
-             * @returns void
-             */
-            append_child_after(child: breeze_ui.js_widget, after_index: number): void
-            /**
-             * 
-             * @param variable_name: string
-             * @param enabled: boolean
-             * @returns void
-             */
-            set_animation(variable_name: string, enabled: boolean): void
-            downcast(): breeze_ui.js_widget | breeze_ui.js_text_widget | breeze_ui.js_flex_layout_widget | breeze_ui.js_image_widget | breeze_ui.js_spacer_widget
-        }
-    }
-    namespace breeze_ui {
-        export class js_text_widget extends js_widget {
-            get text(): string;
-            set text(value: string);
-            get font_size(): number;
-            set font_size(value: number);
-            get max_width(): number;
-            set max_width(value: number);
-            get color(): [number, number, number, number] | undefined;
-            set color(value: [number, number, number, number] | undefined);
-        }
-    }
-    namespace breeze_ui {
-        export class js_flex_layout_widget extends js_widget {
-            get auto_size(): boolean;
-            set auto_size(value: boolean);
-            get horizontal(): boolean;
-            set horizontal(value: boolean);
-            get padding_left(): number;
-            set padding_left(value: number);
-            get padding_right(): number;
-            set padding_right(value: number);
-            get padding_top(): number;
-            set padding_top(value: number);
-            get padding_bottom(): number;
-            set padding_bottom(value: number);
-            get flex_grow(): number;
-            set flex_grow(value: number);
-            get flex_shrink(): number;
-            set flex_shrink(value: number);
-            get max_height(): number;
-            set max_height(value: number);
-            get enable_scrolling(): boolean;
-            set enable_scrolling(value: boolean);
-            get enable_child_clipping(): boolean;
-            set enable_child_clipping(value: boolean);
-            get crop_overflow(): boolean;
-            set crop_overflow(value: boolean);
-            get padding(): [number, number, number, number];
-            get on_click(): ((arg1: number) => void);
-            set on_click(value: ((arg1: number) => void));
-            get on_mouse_move(): ((arg1: number, arg2: number) => void);
-            set on_mouse_move(value: ((arg1: number, arg2: number) => void));
-            get on_mouse_enter(): (() => void);
-            set on_mouse_enter(value: (() => void));
-            get on_mouse_leave(): (() => void);
-            set on_mouse_leave(value: (() => void));
-            get on_mouse_down(): (() => void);
-            set on_mouse_down(value: (() => void));
-            get on_mouse_up(): (() => void);
-            set on_mouse_up(value: (() => void));
-            get justify_content(): string;
-            set justify_content(value: string);
-            get align_items(): string;
-            set align_items(value: string);
-            get background_color(): [number, number, number, number] | undefined;
-            set background_color(value: [number, number, number, number] | undefined);
-            get background_paint(): breeze_ui.breeze_paint;
-            set background_paint(value: breeze_ui.breeze_paint);
-            get border_paint(): breeze_ui.breeze_paint;
-            set border_paint(value: breeze_ui.breeze_paint);
-            get border_radius(): number;
-            set border_radius(value: number);
-            get gap(): number;
-            set gap(value: number);
-            get border_color(): [number, number, number, number] | undefined;
-            set border_color(value: [number, number, number, number] | undefined);
-            get border_width(): number;
-            set border_width(value: number);
-            /**
-             * 
-             * @param left: number
-             * @param right: number
-             * @param top: number
-             * @param bottom: number
-             * @returns void
-             */
-            set_padding(left: number, right: number, top: number, bottom: number): void
-        }
-    }
-    namespace breeze_ui {
-        export class js_image_widget extends js_widget {
-            get svg(): string;
-            set svg(value: string);
-        }
-    }
-    namespace breeze_ui {
-        export class js_spacer_widget extends js_widget {
-            get size(): number;
-            set size(value: number);
-        }
-    }
-    namespace breeze_ui {
-        export class widgets_factory {
-            static create_text_widget(): breeze_ui.js_text_widget
-            static create_flex_layout_widget(): breeze_ui.js_flex_layout_widget
-            static create_image_widget(): breeze_ui.js_image_widget
-            static create_spacer_widget(): breeze_ui.js_spacer_widget
-        }
-    }
-    namespace breeze_ui {
-        export class breeze_paint {
-            /**
-             * 
-             * @param color: string
-             * @returns breeze_ui.breeze_paint
-             */
-            static from_color(color: string): breeze_ui.breeze_paint
-        }
-    }
-    namespace breeze_ui {
-        export class window {
-            /**
-             * 
-             * @param title: string
-             * @param width: number
-             * @param height: number
-             * @returns breeze_ui.window
-             */
-            static create(title: string, width: number, height: number): breeze_ui.window
-            /**
-             * 
-             * @param title: string
-             * @param width: number
-             * @param height: number
-             * @param on_close: (() => void)
-             * @returns breeze_ui.window
-             */
-            static create_ex(title: string, width: number, height: number, on_close: (() => void)): breeze_ui.window
-            /**
-             * 
-             * @param widget: breeze_ui.js_widget
-             * @returns void
-             */
-            set_root_widget(widget: breeze_ui.js_widget): void
-            close(): void
-        }
-    }
-    export class folder_view_folder_item {
-        index: number
-        parent_path: string
-        name(): string
-        modify_date(): string
-        path(): string
-        size(): number
-        type(): string
-        /**
-         *       (0) 取消选择该项。
-         *       (1) 选择该项。
-         *       (3) 将项目置于编辑模式。
-         *       (4) 取消选择除指定项的所有项。
-         *       (8) 确保该项显示在视图中。
-         *       (16) 为项目提供焦点。
-         * @param state: number
-         * @returns void
-         */
-        select(state: number): void
-    }
-    export class folder_view_controller {
-        /**
-         *  当前文件夹路径
-         *  Current folder path
-         */
-        current_path: string
-        /**
-         *  当前焦点文件路径
-         *  Currently focused file path
-         */
-        focused_file_path: string
-        /**
-         *  选中的文件列表
-         *  List of selected files
-         */
-        selected_files: Array<string>
-        /**
-         *  切换到新文件夹
-         *  Change to a new folder
-         * @param new_folder_path: string
-         * @returns void
-         */
-        change_folder(new_folder_path: string): void
-        /**
-         *  打开文件
-         *  Open a file
-         * @param file_path: string
-         * @returns void
-         */
-        open_file(file_path: string): void
-        /**
-         *  打开文件夹
-         *  Open a folder
-         * @param folder_path: string
-         * @returns void
-         */
-        open_folder(folder_path: string): void
-        /**
-         *  刷新视图
-         *  Refresh view
-          @returns void
-         */
-        refresh(): void
-        /**
-         *  复制
-         *  Copy selected items
-          @returns void
-         */
-        copy(): void
-        /**
-         *  剪切
-         *  Cut selected items
-          @returns void
-         */
-        cut(): void
-        /**
-         *  粘贴
-         *  Paste items
-          @returns void
-         */
-        paste(): void
-        /**
-         *  获取项列表
-          @returns Array<folder_view_folder_item>
-         */
-        items(): Array<folder_view_folder_item>
-        /**
-         * 
-         * @param index: number
-         * @param state: number
-         * @returns void
-         */
-        select(index: number, state: number): void
-        select_none(): void
-    }
-    export class value_reset {
-    }
-    export class window_titlebar_controller {
-        /**
-         *  是否在标题栏中点击
-         *  Whether click is in titlebar
-         */
-        is_click_in_titlebar: boolean
-        /**
-         *  窗口标题
-         *  Window title
-         */
-        title: string
-        /**
-         *  可执行文件路径
-         *  Executable path
-         */
-        executable_path: string
-        hwnd: number
-        /**
-         *  窗口位置和大小
-         *  Window position and size
-         */
-        x: number
-        y: number
-        width: number
-        height: number
-        /**
-         *  窗口状态
-         *  Window state
-         */
-        maximized: boolean
-        minimized: boolean
-        focused: boolean
-        visible: boolean
-        /**
-         *  设置窗口标题
-         *  Set window title
-         * @param new_title: string
-         * @returns void
-         */
-        set_title(new_title: string): void
-        /**
-         *  设置窗口图标
-         *  Set window icon
-         * @param icon_path: string
-         * @returns void
-         */
-        set_icon(icon_path: string): void
-        /**
-         *  设置窗口位置
-         *  Set window position
-         * @param new_x: number
-         * @param new_y: number
-         * @returns void
-         */
-        set_position(new_x: number, new_y: number): void
-        /**
-         *  设置窗口大小
-         *  Set window size
-         * @param new_width: number
-         * @param new_height: number
-         * @returns void
-         */
-        set_size(new_width: number, new_height: number): void
-        /**
-         *  最大化窗口
-         *  Maximize window
-          @returns void
-         */
-        maximize(): void
-        /**
-         *  最小化窗口
-         *  Minimize window
-          @returns void
-         */
-        minimize(): void
-        /**
-         *  还原窗口
-         *  Restore window
-          @returns void
-         */
-        restore(): void
-        /**
-         *  关闭窗口
-         *  Close window
-          @returns void
-         */
-        close(): void
-        /**
-         *  聚焦窗口
-         *  Focus window
-          @returns void
-         */
-        focus(): void
-        /**
-         *  显示窗口
-         *  Show window
-          @returns void
-         */
-        show(): void
-        /**
-         *  隐藏窗口
-         *  Hide window
-          @returns void
-         */
-        hide(): void
-    }
-    export class input_box_controller {
-        /**
-         *  输入框文本
-         *  Input box text
-         */
-        text: string
-        /**
-         *  占位符文本
-         *  Placeholder text
-         */
-        placeholder: string
-        /**
-         *  是否多行
-         *  Whether multiline
-         */
-        multiline: boolean
-        /**
-         *  是否密码框
-         *  Whether password field
-         */
-        password: boolean
-        /**
-         *  是否只读
-         *  Whether readonly
-         */
-        readonly: boolean
-        /**
-         *  是否禁用
-         *  Whether disabled
-         */
-        disabled: boolean
-        /**
-         *  输入框位置和大小
-         *  Input box position and size
-         */
-        x: number
-        y: number
-        width: number
-        height: number
-        /**
-         *  设置文本
-         *  Set text
-         * @param new_text: string
-         * @returns void
-         */
-        set_text(new_text: string): void
-        /**
-         *  设置占位符
-         *  Set placeholder
-         * @param new_placeholder: string
-         * @returns void
-         */
-        set_placeholder(new_placeholder: string): void
-        /**
-         *  设置位置
-         *  Set position
-         * @param new_x: number
-         * @param new_y: number
-         * @returns void
-         */
-        set_position(new_x: number, new_y: number): void
-        /**
-         *  设置大小
-         *  Set size
-         * @param new_width: number
-         * @param new_height: number
-         * @returns void
-         */
-        set_size(new_width: number, new_height: number): void
-        /**
-         *  设置是否多行
-         *  Set multiline state
-         * @param new_multiline: boolean
-         * @returns void
-         */
-        set_multiline(new_multiline: boolean): void
-        /**
-         *  设置是否为密码框
-         *  Set password field state
-         * @param new_password: boolean
-         * @returns void
-         */
-        set_password(new_password: boolean): void
-        /**
-         *  设置是否只读
-         *  Set readonly state
-         * @param new_readonly: boolean
-         * @returns void
-         */
-        set_readonly(new_readonly: boolean): void
-        /**
-         *  设置是否禁用
-         *  Set disabled state
-         * @param new_disabled: boolean
-         * @returns void
-         */
-        set_disabled(new_disabled: boolean): void
-        /**
-         *  获取焦点
-         *  Get focus
-          @returns void
-         */
-        focus(): void
-        /**
-         *  失去焦点
-         *  Lose focus
-          @returns void
-         */
-        blur(): void
-        /**
-         *  全选文本
-         *  Select all text
-          @returns void
-         */
-        select_all(): void
-        /**
-         *  选择文本范围
-         *  Select text range
-         * @param start: number
-         * @param end: number
-         * @returns void
-         */
-        select_range(start: number, end: number): void
-        /**
-         *  设置选择范围
-         *  Set selection range
-         * @param start: number
-         * @param end: number
-         * @returns void
-         */
-        set_selection(start: number, end: number): void
-        /**
-         *  插入文本
-         *  Insert text
-         * @param new_text: string
-         * @returns void
-         */
-        insert_text(new_text: string): void
-        /**
-         *  删除文本
-         *  Delete text
-         * @param start: number
-         * @param end: number
-         * @returns void
-         */
-        delete_text(start: number, end: number): void
-        /**
-         *  清空文本
-         *  Clear text
-          @returns void
-         */
-        clear(): void
-    }
-    export class js_menu_action_event_data {
-    }
-    export class js_menu_data {
-        /**
-         *  菜单项类型
-         *  Menu item type
-         */
-        type?: string | undefined
-        /**
-         *  菜单项名称
-         *  Menu item name
-         */
-        name?: string | undefined
-        /**
-         *  子菜单回调函数
-         *  Submenu callback function
-         */
-        submenu?: ((arg1: menu_controller) => void) | value_reset | undefined
-        /**
-         *  菜单动作回调函数
-         *  Menu action callback function
-         */
-        action?: ((arg1: js_menu_action_event_data) => void) | value_reset | undefined
-        /**
-         *  SVG图标
-         *  SVG icon
-         */
-        icon_svg?: string | value_reset | undefined
-        /**
-         *  位图图标
-         *  Bitmap icon
-         */
-        icon_bitmap?: number | value_reset | undefined
-        /**
-         *  是否禁用
-         *  Whether disabled
-         */
-        disabled?: boolean | undefined
-        /**
-         *  仅作为信息标识，不影响行为
-         *  Only for information, set this changes nothing
-         */
-        wID?: number | undefined
-        name_resid?: string | undefined
-        origin_name?: string | undefined
-    }
-    export class menu_item_controller {
-        /**
-         * 
-         * @param new_index: number
-         * @returns void
-         */
-        set_position(new_index: number): void
-        /**
-         * 
-         * @param data: js_menu_data
-         * @returns void
-         */
-        set_data(data: js_menu_data): void
-        data(): js_menu_data
-        remove(): void
-        valid(): boolean
-    }
-    export class menu_item_parent_item_controller {
-        children(): Array<menu_item_controller>
-        /**
-         * 
-         * @param new_index: number
-         * @returns void
-         */
-        set_position(new_index: number): void
-        remove(): void
-        valid(): boolean
-        /**
-         * 
-         * @param data: js_menu_data
-         * @param after_index: number
-         * @returns menu_item_controller
-         */
-        append_child_after(data: js_menu_data, after_index: number): menu_item_controller
-        /**
-         * 
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        append_child(data: js_menu_data): menu_item_controller
-        /**
-         * 
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        prepend_child(data: js_menu_data): menu_item_controller
-    }
-    export class window_prop_data {
-        key: string
-        value: number | string
-    }
-    export class caller_window_data {
-        props: Array<window_prop_data>
-        x: number
-        y: number
-        width: number
-        height: number
-        maximized: boolean
-        minimized: boolean
-        focused: boolean
-        visible: boolean
-        executable_path: string
-        title: string
-        class_name: string
-    }
-    export class js_menu_context {
-        folder_view?: folder_view_controller | undefined
-        window_titlebar?: window_titlebar_controller | undefined
-        input_box?: input_box_controller | undefined
-        window_info: caller_window_data
-    }
-    export class screenside_button_controller {
-        /**
-         * 
-         * @param icon_svg: string
-         * @param on_click: (() => void)
-         * @returns void
-         */
-        add_button(icon_svg: string, on_click: (() => void)): void
-    }
-    export class menu_info_basic_js {
-        menu: menu_controller
-        context: js_menu_context
-        screenside_button: screenside_button_controller
-    }
-    export class menu_controller {
-        get widget(): breeze_ui.js_widget | undefined;
-        /**
-         *  获取所有菜单项
-         *  Get all menu items
-         */
-        get items(): Array<menu_item_controller>;
-        /**
-         *  检查菜单控制器是否有效
-         *  Check if menu controller is valid
-          @returns boolean
-         */
-        valid(): boolean
-        /**
-         *  在指定索引后添加菜单项
-         *  Append menu item after specified index
-         * @param data: js_menu_data
-         * @param after_index: number
-         * @returns menu_item_controller
-         */
-        append_item_after(data: js_menu_data, after_index: number): menu_item_controller
-        /**
-         * 
-         * @param widget: breeze_ui.js_widget
-         * @param after_index: number
-         * @returns void
-         */
-        append_widget_after(widget: breeze_ui.js_widget, after_index: number): void
-        /**
-         *  在指定索引后添加水平菜单母项
-         * @param after_index: number
-         * @returns menu_item_parent_item_controller
-         */
-        append_parent_item_after(after_index: number): menu_item_parent_item_controller
-        /**
-         *  在末尾添加水平菜单母项
-          @returns menu_item_parent_item_controller
-         */
-        append_parent_item(): menu_item_parent_item_controller
-        /**
-         *  在开头添加水平菜单母项
-          @returns menu_item_parent_item_controller
-         */
-        prepend_parent_item(): menu_item_parent_item_controller
-        /**
-         *  在末尾添加菜单项
-         *  Append menu item at end
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        append_item(data: js_menu_data): menu_item_controller
-        /**
-         *  在开头添加菜单项
-         *  Prepend menu item at beginning
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        prepend_item(data: js_menu_data): menu_item_controller
-        /**
-         *  在开头添加 Spacer
-         *  Prepend Spacer
-          @returns void
-         */
-        prepend_spacer(): void
-        /**
-         *  在末尾添加 Spacer
-         *  Append Spacer
-          @returns void
-         */
-        append_spacer(): void
-        /**
-         *  关闭菜单
-         *  Close menu
-          @returns void
-         */
-        close(): void
-        /**
-         *  清除所有菜单项
-         *  Clear all menu items
-          @returns void
-         */
-        clear(): void
-        /**
-         *  获取指定索引的菜单项
-         *  Get menu item at index
-         * @param index: number
-         * @returns menu_item_controller
-         */
-        get_item(index: number): menu_item_controller
-        /**
-         *  添加菜单事件监听器
-         *  Add menu event listener
-         * @param listener: ((arg1: menu_info_basic_js) => void)
-         * @returns (() => void)
-         */
-        static add_menu_listener(listener: ((arg1: menu_info_basic_js) => void)): (() => void)
-        /**
-         *  Only for compatibility
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        prepend_menu(data: js_menu_data): menu_item_controller
-        /**
-         * 
-         * @param data: js_menu_data
-         * @returns menu_item_controller
-         */
-        append_menu(data: js_menu_data): menu_item_controller
-        /**
-         * 
-         * @param data: js_menu_data
-         * @param after_index: number
-         * @returns menu_item_controller
-         */
-        append_menu_after(data: js_menu_data, after_index: number): menu_item_controller
-        static create_detached(): menu_controller
-        /**
-         *  This method is only available for detached menu controllers
-         * @param x: number
-         * @param y: number
-         * @returns void
-         */
-        show_at(x: number, y: number): void
-        /**
-         *  This method is only available for detached menu controllers
-          @returns void
-         */
-        show_at_cursor(): void
-    }
-    export class clipboard {
-        /**
-         *  从剪贴板获取文本
-         *  Get text from clipboard
-          @returns string
-         */
-        static get_text(): string
-        /**
-         *  设置文本到剪贴板
-         *  Set text to clipboard
-         * @param text: string
-         * @returns void
-         */
-        static set_text(text: string): void
-    }
-    export class network {
-        /**
-         *  同步HTTP GET请求
-         *  Synchronous HTTP GET request
-         * @param url: string
-         * @returns string
-         */
-        static get(url: string): string
-        /**
-         *  同步HTTP POST请求
-         *  Synchronous HTTP POST request
-         * @param url: string
-         * @param data: string
-         * @returns string
-         */
-        static post(url: string, data: string): string
-        /**
-         *  异步HTTP GET请求
-         *  Asynchronous HTTP GET request
-         * @param url: string
-         * @param callback: ((arg1: string) => void)
-         * @param error_callback: ((arg1: string) => void)
-         * @returns void
-         */
-        static get_async(url: string, callback: ((arg1: string) => void), error_callback: ((arg1: string) => void)): void
-        /**
-         *  异步HTTP POST请求
-         *  Asynchronous HTTP POST request
-         * @param url: string
-         * @param data: string
-         * @param callback: ((arg1: string) => void)
-         * @param error_callback: ((arg1: string) => void)
-         * @returns void
-         */
-        static post_async(url: string, data: string, callback: ((arg1: string) => void), error_callback: ((arg1: string) => void)): void
-        /**
-         *  下载文件
-         *  Download file
-         * @param url: string
-         * @param path: string
-         * @param callback: (() => void)
-         * @param error_callback: ((arg1: string) => void)
-         * @returns void
-         */
-        static download_async(url: string, path: string, callback: (() => void), error_callback: ((arg1: string) => void)): void
-    }
-    export class subproc_result_data {
-        /**
-         *  标准输出
-         *  Standard output
-         */
-        out: string
-        /**
-         *  标准错误
-         *  Standard error
-         */
-        err: string
-        /**
-         *  退出码
-         *  Exit code
-         */
-        code: number
-    }
-    export class subproc {
-        /**
-         *  同步运行命令
-         *  Run command synchronously
-         * @param cmd: string
-         * @returns subproc_result_data
-         */
-        static run(cmd: string): subproc_result_data
-        /**
-         *  异步运行命令
-         *  Run command asynchronously
-         * @param cmd: string
-         * @param callback: ((arg1: subproc_result_data) => void)
-         * @returns void
-         */
-        static run_async(cmd: string, callback: ((arg1: subproc_result_data) => void)): void
-        /**
-         *  同步打开东西
-         *  Open something synchronously
-         * @param path: string
-         * @param args: string
-         * @returns void
-         */
-        static open(path: string, args: string): void
-        /**
-         *  异步打开东西
-         *  Open something asynchronously
-         * @param path: string
-         * @param args: string
-         * @param callback: (() => void)
-         * @returns void
-         */
-        static open_async(path: string, args: string, callback: (() => void)): void
-    }
-    export class fs {
-        /**
-         *  获取当前工作目录
-         *  Get current working directory
-          @returns string
-         */
-        static cwd(): string
-        /**
-         *  设置当前工作目录
-         *  Set current working directory
-         * @param path: string
-         * @returns void
-         */
-        static chdir(path: string): void
-        /**
-         *  判断路径是否存在
-         *  Check if path exists
-         * @param path: string
-         * @returns boolean
-         */
-        static exists(path: string): boolean
-        /**
-         *  判断路径是否为目录
-         *  Check if path is directory
-         * @param path: string
-         * @returns boolean
-         */
-        static isdir(path: string): boolean
-        /**
-         *  创建目录
-         *  Create directory
-         * @param path: string
-         * @returns void
-         */
-        static mkdir(path: string): void
-        /**
-         *  删除目录
-         *  Remove directory
-         * @param path: string
-         * @returns void
-         */
-        static rmdir(path: string): void
-        /**
-         *  重命名文件或目录
-         *  Rename file or directory
-         * @param old_path: string
-         * @param new_path: string
-         * @returns void
-         */
-        static rename(old_path: string, new_path: string): void
-        /**
-         *  删除文件
-         *  Remove file
-         * @param path: string
-         * @returns void
-         */
-        static remove(path: string): void
-        /**
-         *  复制文件
-         *  Copy file
-         * @param src_path: string
-         * @param dest_path: string
-         * @returns void
-         */
-        static copy(src_path: string, dest_path: string): void
-        /**
-         *  移动文件
-         *  Move file
-         * @param src_path: string
-         * @param dest_path: string
-         * @returns void
-         */
-        static move(src_path: string, dest_path: string): void
-        /**
-         *  读取文件
-         *  Read file
-         * @param path: string
-         * @returns string
-         */
-        static read(path: string): string
-        /**
-         *  写入文件
-         *  Write file
-         * @param path: string
-         * @param data: string
-         * @returns void
-         */
-        static write(path: string, data: string): void
-        /**
-         *  以二进制模式读取文件
-         *  Read file in binary mode
-         * @param path: string
-         * @returns Array<uint8_t>
-         */
-        static read_binary(path: string): Array<uint8_t>
-        /**
-         *  以二进制模式写入文件
-         *  Write file in binary mode
-         * @param path: string
-         * @param data: Array<uint8_t>
-         * @returns void
-         */
-        static write_binary(path: string, data: Array<uint8_t>): void
-        /**
-         *  读取目录
-         *  Read directory
-         * @param path: string
-         * @returns Array<string>
-         */
-        static readdir(path: string): Array<string>
-        /**
-         *  使用 SHFileOperation 拷贝文件/文件夹
-         *  Copy file with SHFileOperation
-         *  这会模拟资源管理器中“复制”的行为，即显示进度窗口，UAC请求窗口等
-         * @param src_path: string
-         * @param dest_path: string
-         * @param callback: ((arg1: boolean, arg2: string) => void)
-         * @returns void
-         */
-        static copy_shfile(src_path: string, dest_path: string, callback: ((arg1: boolean, arg2: string) => void)): void
-        /**
-         *  使用 SHFileOperation 移动文件/文件夹
-         *  Move file with SHFileOperation
-         *  这会模拟资源管理器中“移动”的行为，即显示进度窗口，UAC请求窗口等
-         * @param src_path: string
-         * @param dest_path: string
-         * @param callback: ((arg1: boolean) => void)
-         * @returns void
-         */
-        static move_shfile(src_path: string, dest_path: string, callback: ((arg1: boolean) => void)): void
-        /**
-         *  监测文件/文件夹变动
-         *  Watch file/folder changes
-         *  added 0
-         *  removed 1
-         *  modified 2
-         *  renamed_old 3
-         *  renamed_new 4
-         * @param path: string
-         * @param callback: ((arg1: string, arg2: number) => void)
-         * @returns (() => void)
-         */
-        static watch(path: string, callback: ((arg1: string, arg2: number) => void)): (() => void)
-    }
-    export class breeze {
-        static version(): string
-        static hash(): string
-        static branch(): string
-        static build_date(): string
-        static data_directory(): string
-        static is_light_theme(): boolean
-        static user_language(): string
-        /**
-         * 
-         * @param can: boolean
-         * @returns void
-         */
-        static set_can_reload_js(can: boolean): void
-        static should_show_settings_button(): boolean
-        static current_process_name(): string
-        static current_process_path(): string
-
-        // i18n API
-        /**
-         * Get a translated string by key
-         * 获取翻译字符串
-         * @param key - The translation key (e.g., "settings.title")
-         * @returns The translated string, or the key itself if not found
-         */
-        static get_translation(key: string): string
-
-        /**
-         * Get a translated string with placeholder substitution
-         * 获取带占位符替换的翻译字符串
-         * @param key - The translation key
-         * @param params - Object mapping placeholder names to values (e.g., { name: "MyPlugin" })
-         * @returns The translated string with {placeholders} replaced
-         */
-        static get_translation_with_params(key: string, params: Record<string, string | number | boolean>): string
-
-        /**
-         * Check if current language is RTL (right-to-left)
-         * 检查当前语言是否为从右到左
-         * @returns true if RTL, false otherwise
-         */
-        static is_rtl(): boolean
-
-        /**
-         * Register plugin translations
-         * 注册插件翻译
-         * @param lang - Language code (e.g., "en-US", "zh-CN")
-         * @param translations - Object mapping keys to translated strings
-         */
-        static register_translations(lang: string, translations: Record<string, string>): void
-
-        /**
-         * Get available languages
-         * 获取可用语言列表
-         * @returns Array of language codes
-         */
-        static available_languages(): Array<string>
-
-        /**
-         * Set language
-         * 设置语言
-         * @param lang - Language code (e.g., "en-US", "zh-CN")
-         */
-        static set_language(lang: string): void
-    }
-    export class win32 {
-        /**
-         * 
-         * @param str: string
-         * @returns string
-         */
-        static resid_from_string(str: string): string
-        /**
-         * 
-         * @param str: string
-         * @returns string
-         */
-        static string_from_resid(str: string): string
-        /**
-         * 
-         * @param str: string
-         * @returns Array<string>
-         */
-        static all_resids_from_string(str: string): Array<string>
-        /**
-         * 
-         * @param path: string
-         * @returns number
-         */
-        static load_library(path: string): number
-        /**
-         * 
-         * @param name: string
-         * @returns string | undefined
-         */
-        static env(name: string): string | undefined
-        /**
-         * 
-         * @param path: string
-         * @returns number
-         */
-        static load_file_icon(path: string): number
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @returns number
-         */
-        static reg_get_dword(key: string, name: string): number
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @returns string
-         */
-        static reg_get_string(key: string, name: string): string
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @returns number
-         */
-        static reg_get_qword(key: string, name: string): number
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @param value: number
-         * @returns void
-         */
-        static reg_set_dword(key: string, name: string, value: number): void
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @param value: string
-         * @returns void
-         */
-        static reg_set_string(key: string, name: string, value: string): void
-        /**
-         * 
-         * @param key: string
-         * @param name: string
-         * @param value: number
-         * @returns void
-         */
-        static reg_set_qword(key: string, name: string, value: number): void
-        /**
-         * 
-         * @param key: string
-         * @returns boolean
-         */
-        static is_key_down(key: string): boolean
-        /**
-         *  Support keys:
-         *  "ctrl", "shift", "alt", "win", "A" - "Z", "0" - "9", "f1" - "f12",
-         *  "up", "down", "left", "right", "enter", "space", "tab", "esc", "backspace",
-         *  "delete", "home", "end", "pageup", "pagedown", "insert", "capslock", "numlock",
-         *  "scrolllock", "printscreen", "pause", "minus", "equal", "comma", "period",
-         *  "slash", "backslash", "semicolon", "quote", "bracket_left", "bracket_right"
-         *  case insensitive
-         * @param keys: Array<string>
-         * @returns void
-         */
-        static simulate_hotkeys(keys: Array<string>): void
-        /**
-         * 
-         * @param key: string
-         * @returns void
-         */
-        static simulate_key_press(key: string): void
-        /**
-         * 
-         * @param key: string
-         * @returns void
-         */
-        static simulate_key_down(key: string): void
-        /**
-         * 
-         * @param key: string
-         * @returns void
-         */
-        static simulate_key_up(key: string): void
-        /**
-         * 
-         * @param text: string
-         * @returns void
-         */
-        static simulate_text_input(text: string): void
-        /**
-         * 
-         * @param x: number
-         * @param y: number
-         * @returns void
-         */
-        static simulate_mouse_move(x: number, y: number): void
-        /**
-         *  Buttons: "left", "right", "middle", "x1", "x2"
-         * @param button: string
-         * @returns void
-         */
-        static simulate_mouse_click(button: string): void
-        /**
-         *  Buttons: "left", "right", "middle", "x1", "x2"
-         * @param button: string
-         * @returns void
-         */
-        static simulate_mouse_down(button: string): void
-        /**
-         *  Buttons: "left", "right", "middle", "x1", "x2"
-         * @param button: string
-         * @returns void
-         */
-        static simulate_mouse_up(button: string): void
-    }
-    export class notification {
-        /**
-         * 
-         * @param message: string
-         * @returns void
-         */
-        static send_basic(message: string): void
-        /**
-         * 
-         * @param message: string
-         * @param path: string
-         * @returns void
-         */
-        static send_with_image(message: string, path: string): void
-        /**
-         * 
-         * @param title: string
-         * @param message: string
-         * @param image_path: string
-         * @returns void
-         */
-        static send_title_text(title: string, message: string, image_path: string): void
-        /**
-         * 
-         * @param title: string
-         * @param message: string
-         * @param buttons: Array<[string, (() => void)]>
-         * @returns void
-         */
-        static send_with_buttons(title: string, message: string, buttons: Array<[string, (() => void)]>): void
-    }
-    export class infra {
-        /**
-         * 
-         * @param callback: (() => void)
-         * @param delay: number
-         * @returns number
-         */
-        static setTimeout(callback: (() => void), delay: number): number
-        /**
-         * 
-         * @param id: number
-         * @returns void
-         */
-        static clearTimeout(id: number): void
-        /**
-         * 
-         * @param callback: (() => void)
-         * @param delay: number
-         * @returns number
-         */
-        static setInterval(callback: (() => void), delay: number): number
-        /**
-         * 
-         * @param id: number
-         * @returns void
-         */
-        static clearInterval(id: number): void
-        /**
-         * 
-         * @param base64: string
-         * @returns string
-         */
-        static atob(base64: string): string
-        /**
-         * 
-         * @param str: string
-         * @returns string
-         */
-        static btoa(str: string): string
-    }
+export class breeze_ui {
+}
+namespace breeze_ui {
+export class js_widget {
+	get x(): number;
+    set x(value: number);
+	get y(): number;
+    set y(value: number);
+	get width(): number;
+    set width(value: number);
+	get height(): number;
+    set height(value: number);
+	children(): Array<breeze_ui.js_widget>
+	/**
+     * 
+     * @param child: breeze_ui.js_widget
+     * @returns void
+     */
+    append_child(child: breeze_ui.js_widget): void
+	/**
+     * 
+     * @param child: breeze_ui.js_widget
+     * @returns void
+     */
+    prepend_child(child: breeze_ui.js_widget): void
+	/**
+     * 
+     * @param child: breeze_ui.js_widget
+     * @returns void
+     */
+    remove_child(child: breeze_ui.js_widget): void
+	/**
+     * 
+     * @param child: breeze_ui.js_widget
+     * @param after_index: number
+     * @returns void
+     */
+    append_child_after(child: breeze_ui.js_widget, after_index: number): void
+	/**
+     * 
+     * @param variable_name: string
+     * @param enabled: boolean
+     * @returns void
+     */
+    set_animation(variable_name: string, enabled: boolean): void
+	downcast(): breeze_ui.js_widget | breeze_ui.js_text_widget | breeze_ui.js_flex_layout_widget | breeze_ui.js_image_widget | breeze_ui.js_spacer_widget
+}
+}
+namespace breeze_ui {
+export class js_text_widget extends js_widget {
+	get text(): string;
+    set text(value: string);
+	get font_size(): number;
+    set font_size(value: number);
+	get max_width(): number;
+    set max_width(value: number);
+	get color(): [number, number, number, number] | undefined;
+    set color(value: [number, number, number, number] | undefined);
+}
+}
+namespace breeze_ui {
+export class js_flex_layout_widget extends js_widget {
+	get auto_size(): boolean;
+    set auto_size(value: boolean);
+	get horizontal(): boolean;
+    set horizontal(value: boolean);
+	get padding_left(): number;
+    set padding_left(value: number);
+	get padding_right(): number;
+    set padding_right(value: number);
+	get padding_top(): number;
+    set padding_top(value: number);
+	get padding_bottom(): number;
+    set padding_bottom(value: number);
+	get flex_grow(): number;
+    set flex_grow(value: number);
+	get flex_shrink(): number;
+    set flex_shrink(value: number);
+	get max_height(): number;
+    set max_height(value: number);
+	get enable_scrolling(): boolean;
+    set enable_scrolling(value: boolean);
+	get enable_child_clipping(): boolean;
+    set enable_child_clipping(value: boolean);
+	get crop_overflow(): boolean;
+    set crop_overflow(value: boolean);
+	get padding(): [number, number, number, number];
+	get on_click(): ((arg1: number) => void);
+    set on_click(value: ((arg1: number) => void));
+	get on_mouse_move(): ((arg1: number, arg2: number) => void);
+    set on_mouse_move(value: ((arg1: number, arg2: number) => void));
+	get on_mouse_enter(): (() => void);
+    set on_mouse_enter(value: (() => void));
+	get on_mouse_leave(): (() => void);
+    set on_mouse_leave(value: (() => void));
+	get on_mouse_down(): (() => void);
+    set on_mouse_down(value: (() => void));
+	get on_mouse_up(): (() => void);
+    set on_mouse_up(value: (() => void));
+	get justify_content(): string;
+    set justify_content(value: string);
+	get align_items(): string;
+    set align_items(value: string);
+	get background_color(): [number, number, number, number] | undefined;
+    set background_color(value: [number, number, number, number] | undefined);
+	get background_paint(): breeze_ui.breeze_paint;
+    set background_paint(value: breeze_ui.breeze_paint);
+	get border_paint(): breeze_ui.breeze_paint;
+    set border_paint(value: breeze_ui.breeze_paint);
+	get border_radius(): number;
+    set border_radius(value: number);
+	get gap(): number;
+    set gap(value: number);
+	get border_color(): [number, number, number, number] | undefined;
+    set border_color(value: [number, number, number, number] | undefined);
+	get border_width(): number;
+    set border_width(value: number);
+	/**
+     * 
+     * @param left: number
+     * @param right: number
+     * @param top: number
+     * @param bottom: number
+     * @returns void
+     */
+    set_padding(left: number, right: number, top: number, bottom: number): void
+}
+}
+namespace breeze_ui {
+export class js_image_widget extends js_widget {
+	get svg(): string;
+    set svg(value: string);
+}
+}
+namespace breeze_ui {
+export class js_spacer_widget extends js_widget {
+	get size(): number;
+    set size(value: number);
+}
+}
+namespace breeze_ui {
+export class widgets_factory {
+	static create_text_widget(): breeze_ui.js_text_widget
+	static create_flex_layout_widget(): breeze_ui.js_flex_layout_widget
+	static create_image_widget(): breeze_ui.js_image_widget
+	static create_spacer_widget(): breeze_ui.js_spacer_widget
+}
+}
+namespace breeze_ui {
+export class breeze_paint {
+	/**
+     * 
+     * @param color: string
+     * @returns breeze_ui.breeze_paint
+     */
+    static from_color(color: string): breeze_ui.breeze_paint
+}
+}
+namespace breeze_ui {
+export class window {
+	/**
+     * 
+     * @param title: string
+     * @param width: number
+     * @param height: number
+     * @returns breeze_ui.window
+     */
+    static create(title: string, width: number, height: number): breeze_ui.window
+	/**
+     * 
+     * @param title: string
+     * @param width: number
+     * @param height: number
+     * @param on_close: (() => void)
+     * @returns breeze_ui.window
+     */
+    static create_ex(title: string, width: number, height: number, on_close: (() => void)): breeze_ui.window
+	/**
+     * 
+     * @param widget: breeze_ui.js_widget
+     * @returns void
+     */
+    set_root_widget(widget: breeze_ui.js_widget): void
+	close(): void
+}
+}
+export class folder_view_folder_item {
+	index: number
+	parent_path: string
+	name(): string
+	modify_date(): string
+	path(): string
+	size(): number
+	type(): string
+	/**
+     *       (0) 取消选择该项。
+     *       (1) 选择该项。
+     *       (3) 将项目置于编辑模式。
+     *       (4) 取消选择除指定项的所有项。
+     *       (8) 确保该项显示在视图中。
+     *       (16) 为项目提供焦点。
+     * @param state: number
+     * @returns void
+     */
+    select(state: number): void
+}
+export class folder_view_controller {
+	/**
+     *  当前文件夹路径
+     *  Current folder path
+     */
+    current_path: string
+	/**
+     *  当前焦点文件路径
+     *  Currently focused file path
+     */
+    focused_file_path: string
+	/**
+     *  选中的文件列表
+     *  List of selected files
+     */
+    selected_files: Array<string>
+	/**
+     *  切换到新文件夹
+     *  Change to a new folder
+     * @param new_folder_path: string
+     * @returns void
+     */
+    change_folder(new_folder_path: string): void
+	/**
+     *  打开文件
+     *  Open a file
+     * @param file_path: string
+     * @returns void
+     */
+    open_file(file_path: string): void
+	/**
+     *  打开文件夹
+     *  Open a folder
+     * @param folder_path: string
+     * @returns void
+     */
+    open_folder(folder_path: string): void
+	/**
+     *  刷新视图
+     *  Refresh view
+      @returns void
+     */
+    refresh(): void
+	/**
+     *  复制
+     *  Copy selected items
+      @returns void
+     */
+    copy(): void
+	/**
+     *  剪切
+     *  Cut selected items
+      @returns void
+     */
+    cut(): void
+	/**
+     *  粘贴
+     *  Paste items
+      @returns void
+     */
+    paste(): void
+	/**
+     *  获取项列表
+      @returns Array<folder_view_folder_item>
+     */
+    items(): Array<folder_view_folder_item>
+	/**
+     * 
+     * @param index: number
+     * @param state: number
+     * @returns void
+     */
+    select(index: number, state: number): void
+	select_none(): void
+}
+export class value_reset {
+}
+export class window_titlebar_controller {
+	/**
+     *  是否在标题栏中点击
+     *  Whether click is in titlebar
+     */
+    is_click_in_titlebar: boolean
+	/**
+     *  窗口标题
+     *  Window title
+     */
+    title: string
+	/**
+     *  可执行文件路径
+     *  Executable path
+     */
+    executable_path: string
+	hwnd: number
+	/**
+     *  窗口位置和大小
+     *  Window position and size
+     */
+    x: number
+	y: number
+	width: number
+	height: number
+	/**
+     *  窗口状态
+     *  Window state
+     */
+    maximized: boolean
+	minimized: boolean
+	focused: boolean
+	visible: boolean
+	/**
+     *  设置窗口标题
+     *  Set window title
+     * @param new_title: string
+     * @returns void
+     */
+    set_title(new_title: string): void
+	/**
+     *  设置窗口图标
+     *  Set window icon
+     * @param icon_path: string
+     * @returns void
+     */
+    set_icon(icon_path: string): void
+	/**
+     *  设置窗口位置
+     *  Set window position
+     * @param new_x: number
+     * @param new_y: number
+     * @returns void
+     */
+    set_position(new_x: number, new_y: number): void
+	/**
+     *  设置窗口大小
+     *  Set window size
+     * @param new_width: number
+     * @param new_height: number
+     * @returns void
+     */
+    set_size(new_width: number, new_height: number): void
+	/**
+     *  最大化窗口
+     *  Maximize window
+      @returns void
+     */
+    maximize(): void
+	/**
+     *  最小化窗口
+     *  Minimize window
+      @returns void
+     */
+    minimize(): void
+	/**
+     *  还原窗口
+     *  Restore window
+      @returns void
+     */
+    restore(): void
+	/**
+     *  关闭窗口
+     *  Close window
+      @returns void
+     */
+    close(): void
+	/**
+     *  聚焦窗口
+     *  Focus window
+      @returns void
+     */
+    focus(): void
+	/**
+     *  显示窗口
+     *  Show window
+      @returns void
+     */
+    show(): void
+	/**
+     *  隐藏窗口
+     *  Hide window
+      @returns void
+     */
+    hide(): void
+}
+export class input_box_controller {
+	/**
+     *  输入框文本
+     *  Input box text
+     */
+    text: string
+	/**
+     *  占位符文本
+     *  Placeholder text
+     */
+    placeholder: string
+	/**
+     *  是否多行
+     *  Whether multiline
+     */
+    multiline: boolean
+	/**
+     *  是否密码框
+     *  Whether password field
+     */
+    password: boolean
+	/**
+     *  是否只读
+     *  Whether readonly
+     */
+    readonly: boolean
+	/**
+     *  是否禁用
+     *  Whether disabled
+     */
+    disabled: boolean
+	/**
+     *  输入框位置和大小
+     *  Input box position and size
+     */
+    x: number
+	y: number
+	width: number
+	height: number
+	/**
+     *  设置文本
+     *  Set text
+     * @param new_text: string
+     * @returns void
+     */
+    set_text(new_text: string): void
+	/**
+     *  设置占位符
+     *  Set placeholder
+     * @param new_placeholder: string
+     * @returns void
+     */
+    set_placeholder(new_placeholder: string): void
+	/**
+     *  设置位置
+     *  Set position
+     * @param new_x: number
+     * @param new_y: number
+     * @returns void
+     */
+    set_position(new_x: number, new_y: number): void
+	/**
+     *  设置大小
+     *  Set size
+     * @param new_width: number
+     * @param new_height: number
+     * @returns void
+     */
+    set_size(new_width: number, new_height: number): void
+	/**
+     *  设置是否多行
+     *  Set multiline state
+     * @param new_multiline: boolean
+     * @returns void
+     */
+    set_multiline(new_multiline: boolean): void
+	/**
+     *  设置是否为密码框
+     *  Set password field state
+     * @param new_password: boolean
+     * @returns void
+     */
+    set_password(new_password: boolean): void
+	/**
+     *  设置是否只读
+     *  Set readonly state
+     * @param new_readonly: boolean
+     * @returns void
+     */
+    set_readonly(new_readonly: boolean): void
+	/**
+     *  设置是否禁用
+     *  Set disabled state
+     * @param new_disabled: boolean
+     * @returns void
+     */
+    set_disabled(new_disabled: boolean): void
+	/**
+     *  获取焦点
+     *  Get focus
+      @returns void
+     */
+    focus(): void
+	/**
+     *  失去焦点
+     *  Lose focus
+      @returns void
+     */
+    blur(): void
+	/**
+     *  全选文本
+     *  Select all text
+      @returns void
+     */
+    select_all(): void
+	/**
+     *  选择文本范围
+     *  Select text range
+     * @param start: number
+     * @param end: number
+     * @returns void
+     */
+    select_range(start: number, end: number): void
+	/**
+     *  设置选择范围
+     *  Set selection range
+     * @param start: number
+     * @param end: number
+     * @returns void
+     */
+    set_selection(start: number, end: number): void
+	/**
+     *  插入文本
+     *  Insert text
+     * @param new_text: string
+     * @returns void
+     */
+    insert_text(new_text: string): void
+	/**
+     *  删除文本
+     *  Delete text
+     * @param start: number
+     * @param end: number
+     * @returns void
+     */
+    delete_text(start: number, end: number): void
+	/**
+     *  清空文本
+     *  Clear text
+      @returns void
+     */
+    clear(): void
+}
+export class js_menu_action_event_data {
+}
+export class js_menu_data {
+	/**
+     *  菜单项类型
+     *  Menu item type
+     */
+    type?: string | undefined
+	/**
+     *  菜单项名称
+     *  Menu item name
+     */
+    name?: string | undefined
+	/**
+     *  子菜单回调函数
+     *  Submenu callback function
+     */
+    submenu?: ((arg1: menu_controller) => void) | value_reset | undefined
+	/**
+     *  菜单动作回调函数
+     *  Menu action callback function
+     */
+    action?: ((arg1: js_menu_action_event_data) => void) | value_reset | undefined
+	/**
+     *  SVG图标
+     *  SVG icon
+     */
+    icon_svg?: string | value_reset | undefined
+	/**
+     *  位图图标
+     *  Bitmap icon
+     */
+    icon_bitmap?: number | value_reset | undefined
+	/**
+     *  是否禁用
+     *  Whether disabled
+     */
+    disabled?: boolean | undefined
+	/**
+     *  仅作为信息标识，不影响行为
+     *  Only for information, set this changes nothing
+     */
+    wID?: number | undefined
+	name_resid?: string | undefined
+	origin_name?: string | undefined
+}
+export class menu_item_controller {
+	/**
+     * 
+     * @param new_index: number
+     * @returns void
+     */
+    set_position(new_index: number): void
+	/**
+     * 
+     * @param data: js_menu_data
+     * @returns void
+     */
+    set_data(data: js_menu_data): void
+	data(): js_menu_data
+	remove(): void
+	valid(): boolean
+}
+export class menu_item_parent_item_controller {
+	children(): Array<menu_item_controller>
+	/**
+     * 
+     * @param new_index: number
+     * @returns void
+     */
+    set_position(new_index: number): void
+	remove(): void
+	valid(): boolean
+	/**
+     * 
+     * @param data: js_menu_data
+     * @param after_index: number
+     * @returns menu_item_controller
+     */
+    append_child_after(data: js_menu_data, after_index: number): menu_item_controller
+	/**
+     * 
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    append_child(data: js_menu_data): menu_item_controller
+	/**
+     * 
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    prepend_child(data: js_menu_data): menu_item_controller
+}
+export class window_prop_data {
+	key: string
+	value: number | string
+}
+export class caller_window_data {
+	props: Array<window_prop_data>
+	x: number
+	y: number
+	width: number
+	height: number
+	maximized: boolean
+	minimized: boolean
+	focused: boolean
+	visible: boolean
+	executable_path: string
+	title: string
+	class_name: string
+}
+export class js_menu_context {
+	folder_view?: folder_view_controller | undefined
+	window_titlebar?: window_titlebar_controller | undefined
+	input_box?: input_box_controller | undefined
+	window_info: caller_window_data
+}
+export class screenside_button_controller {
+	/**
+     * 
+     * @param icon_svg: string
+     * @param on_click: (() => void)
+     * @returns void
+     */
+    add_button(icon_svg: string, on_click: (() => void)): void
+}
+export class menu_info_basic_js {
+	menu: menu_controller
+	context: js_menu_context
+	screenside_button: screenside_button_controller
+}
+export class menu_controller {
+	get widget(): breeze_ui.js_widget | undefined;
+	/**
+     *  获取所有菜单项
+     *  Get all menu items
+     */
+    get items(): Array<menu_item_controller>;
+	/**
+     *  检查菜单控制器是否有效
+     *  Check if menu controller is valid
+      @returns boolean
+     */
+    valid(): boolean
+	/**
+     *  在指定索引后添加菜单项
+     *  Append menu item after specified index
+     * @param data: js_menu_data
+     * @param after_index: number
+     * @returns menu_item_controller
+     */
+    append_item_after(data: js_menu_data, after_index: number): menu_item_controller
+	/**
+     * 
+     * @param widget: breeze_ui.js_widget
+     * @param after_index: number
+     * @returns void
+     */
+    append_widget_after(widget: breeze_ui.js_widget, after_index: number): void
+	/**
+     *  在指定索引后添加水平菜单母项
+     * @param after_index: number
+     * @returns menu_item_parent_item_controller
+     */
+    append_parent_item_after(after_index: number): menu_item_parent_item_controller
+	/**
+     *  在末尾添加水平菜单母项
+      @returns menu_item_parent_item_controller
+     */
+    append_parent_item(): menu_item_parent_item_controller
+	/**
+     *  在开头添加水平菜单母项
+      @returns menu_item_parent_item_controller
+     */
+    prepend_parent_item(): menu_item_parent_item_controller
+	/**
+     *  在末尾添加菜单项
+     *  Append menu item at end
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    append_item(data: js_menu_data): menu_item_controller
+	/**
+     *  在开头添加菜单项
+     *  Prepend menu item at beginning
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    prepend_item(data: js_menu_data): menu_item_controller
+	/**
+     *  在开头添加 Spacer
+     *  Prepend Spacer
+      @returns void
+     */
+    prepend_spacer(): void
+	/**
+     *  在末尾添加 Spacer
+     *  Append Spacer
+      @returns void
+     */
+    append_spacer(): void
+	/**
+     *  关闭菜单
+     *  Close menu
+      @returns void
+     */
+    close(): void
+	/**
+     *  清除所有菜单项
+     *  Clear all menu items
+      @returns void
+     */
+    clear(): void
+	/**
+     *  获取指定索引的菜单项
+     *  Get menu item at index
+     * @param index: number
+     * @returns menu_item_controller
+     */
+    get_item(index: number): menu_item_controller
+	/**
+     *  添加菜单事件监听器
+     *  Add menu event listener
+     * @param listener: ((arg1: menu_info_basic_js) => void)
+     * @returns (() => void)
+     */
+    static add_menu_listener(listener: ((arg1: menu_info_basic_js) => void)): (() => void)
+	/**
+     *  Only for compatibility
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    prepend_menu(data: js_menu_data): menu_item_controller
+	/**
+     * 
+     * @param data: js_menu_data
+     * @returns menu_item_controller
+     */
+    append_menu(data: js_menu_data): menu_item_controller
+	/**
+     * 
+     * @param data: js_menu_data
+     * @param after_index: number
+     * @returns menu_item_controller
+     */
+    append_menu_after(data: js_menu_data, after_index: number): menu_item_controller
+	static create_detached(): menu_controller
+	/**
+     *  This method is only available for detached menu controllers
+     * @param x: number
+     * @param y: number
+     * @returns void
+     */
+    show_at(x: number, y: number): void
+	/**
+     *  This method is only available for detached menu controllers
+      @returns void
+     */
+    show_at_cursor(): void
+}
+export class clipboard {
+	/**
+     *  从剪贴板获取文本
+     *  Get text from clipboard
+      @returns string
+     */
+    static get_text(): string
+	/**
+     *  设置文本到剪贴板
+     *  Set text to clipboard
+     * @param text: string
+     * @returns void
+     */
+    static set_text(text: string): void
+}
+export class network {
+	/**
+     *  同步HTTP GET请求
+     *  Synchronous HTTP GET request
+     * @param url: string
+     * @returns string
+     */
+    static get(url: string): string
+	/**
+     *  同步HTTP POST请求
+     *  Synchronous HTTP POST request
+     * @param url: string
+     * @param data: string
+     * @returns string
+     */
+    static post(url: string, data: string): string
+	/**
+     *  异步HTTP GET请求
+     *  Asynchronous HTTP GET request
+     * @param url: string
+     * @param callback: ((arg1: string) => void)
+     * @param error_callback: ((arg1: string) => void)
+     * @returns void
+     */
+    static get_async(url: string, callback: ((arg1: string) => void), error_callback: ((arg1: string) => void)): void
+	/**
+     *  异步HTTP POST请求
+     *  Asynchronous HTTP POST request
+     * @param url: string
+     * @param data: string
+     * @param callback: ((arg1: string) => void)
+     * @param error_callback: ((arg1: string) => void)
+     * @returns void
+     */
+    static post_async(url: string, data: string, callback: ((arg1: string) => void), error_callback: ((arg1: string) => void)): void
+	/**
+     *  下载文件
+     *  Download file
+     * @param url: string
+     * @param path: string
+     * @param callback: (() => void)
+     * @param error_callback: ((arg1: string) => void)
+     * @returns void
+     */
+    static download_async(url: string, path: string, callback: (() => void), error_callback: ((arg1: string) => void)): void
+}
+export class subproc_result_data {
+	/**
+     *  标准输出
+     *  Standard output
+     */
+    out: string
+	/**
+     *  标准错误
+     *  Standard error
+     */
+    err: string
+	/**
+     *  退出码
+     *  Exit code
+     */
+    code: number
+}
+export class subproc {
+	/**
+     *  同步运行命令
+     *  Run command synchronously
+     * @param cmd: string
+     * @returns subproc_result_data
+     */
+    static run(cmd: string): subproc_result_data
+	/**
+     *  异步运行命令
+     *  Run command asynchronously
+     * @param cmd: string
+     * @param callback: ((arg1: subproc_result_data) => void)
+     * @returns void
+     */
+    static run_async(cmd: string, callback: ((arg1: subproc_result_data) => void)): void
+	/**
+     *  同步打开东西
+     *  Open something synchronously
+     * @param path: string
+     * @param args: string
+     * @returns void
+     */
+    static open(path: string, args: string): void
+	/**
+     *  异步打开东西
+     *  Open something asynchronously
+     * @param path: string
+     * @param args: string
+     * @param callback: (() => void)
+     * @returns void
+     */
+    static open_async(path: string, args: string, callback: (() => void)): void
+}
+export class fs {
+	/**
+     *  获取当前工作目录
+     *  Get current working directory
+      @returns string
+     */
+    static cwd(): string
+	/**
+     *  设置当前工作目录
+     *  Set current working directory
+     * @param path: string
+     * @returns void
+     */
+    static chdir(path: string): void
+	/**
+     *  判断路径是否存在
+     *  Check if path exists
+     * @param path: string
+     * @returns boolean
+     */
+    static exists(path: string): boolean
+	/**
+     *  判断路径是否为目录
+     *  Check if path is directory
+     * @param path: string
+     * @returns boolean
+     */
+    static isdir(path: string): boolean
+	/**
+     *  创建目录
+     *  Create directory
+     * @param path: string
+     * @returns void
+     */
+    static mkdir(path: string): void
+	/**
+     *  删除目录
+     *  Remove directory
+     * @param path: string
+     * @returns void
+     */
+    static rmdir(path: string): void
+	/**
+     *  重命名文件或目录
+     *  Rename file or directory
+     * @param old_path: string
+     * @param new_path: string
+     * @returns void
+     */
+    static rename(old_path: string, new_path: string): void
+	/**
+     *  删除文件
+     *  Remove file
+     * @param path: string
+     * @returns void
+     */
+    static remove(path: string): void
+	/**
+     *  复制文件
+     *  Copy file
+     * @param src_path: string
+     * @param dest_path: string
+     * @returns void
+     */
+    static copy(src_path: string, dest_path: string): void
+	/**
+     *  移动文件
+     *  Move file
+     * @param src_path: string
+     * @param dest_path: string
+     * @returns void
+     */
+    static move(src_path: string, dest_path: string): void
+	/**
+     *  读取文件
+     *  Read file
+     * @param path: string
+     * @returns string
+     */
+    static read(path: string): string
+	/**
+     *  写入文件
+     *  Write file
+     * @param path: string
+     * @param data: string
+     * @returns void
+     */
+    static write(path: string, data: string): void
+	/**
+     *  以二进制模式读取文件
+     *  Read file in binary mode
+     * @param path: string
+     * @returns Array<uint8_t>
+     */
+    static read_binary(path: string): Array<uint8_t>
+	/**
+     *  以二进制模式写入文件
+     *  Write file in binary mode
+     * @param path: string
+     * @param data: Array<uint8_t>
+     * @returns void
+     */
+    static write_binary(path: string, data: Array<uint8_t>): void
+	/**
+     *  读取目录
+     *  Read directory
+     * @param path: string
+     * @returns Array<string>
+     */
+    static readdir(path: string): Array<string>
+	/**
+     *  使用 SHFileOperation 拷贝文件/文件夹
+     *  Copy file with SHFileOperation
+     *  这会模拟资源管理器中“复制”的行为，即显示进度窗口，UAC请求窗口等
+     * @param src_path: string
+     * @param dest_path: string
+     * @param callback: ((arg1: boolean, arg2: string) => void)
+     * @returns void
+     */
+    static copy_shfile(src_path: string, dest_path: string, callback: ((arg1: boolean, arg2: string) => void)): void
+	/**
+     *  使用 SHFileOperation 移动文件/文件夹
+     *  Move file with SHFileOperation
+     *  这会模拟资源管理器中“移动”的行为，即显示进度窗口，UAC请求窗口等
+     * @param src_path: string
+     * @param dest_path: string
+     * @param callback: ((arg1: boolean) => void)
+     * @returns void
+     */
+    static move_shfile(src_path: string, dest_path: string, callback: ((arg1: boolean) => void)): void
+	/**
+     *  监测文件/文件夹变动
+     *  Watch file/folder changes
+     *  added 0
+     *  removed 1
+     *  modified 2
+     *  renamed_old 3
+     *  renamed_new 4
+     * @param path: string
+     * @param callback: ((arg1: string, arg2: number) => void)
+     * @returns (() => void)
+     */
+    static watch(path: string, callback: ((arg1: string, arg2: number) => void)): (() => void)
+}
+export class breeze {
+	static version(): string
+	static hash(): string
+	static branch(): string
+	static build_date(): string
+	static data_directory(): string
+	static is_light_theme(): boolean
+	static user_language(): string
+	/**
+     * 
+     * @param can: boolean
+     * @returns void
+     */
+    static set_can_reload_js(can: boolean): void
+	static should_show_settings_button(): boolean
+	static current_process_name(): string
+	static current_process_path(): string
+	/**
+     *  i18n API
+     *  Get a translated string by key
+     *  获取翻译字符串
+     * @param key: string
+     * @returns string
+     */
+    static get_translation(key: string): string
+	/**
+     *  Get a translated string with placeholder substitution
+     *  获取带占位符替换的翻译字符串
+     * @param key: string
+     * @param params: std.map<string, string>
+     * @returns string
+     */
+    static get_translation_with_params(key: string, params: std.map<string, string>): string
+	/**
+     *  Check if current language is RTL
+     *  检查当前语言是否为从右到左
+      @returns boolean
+     */
+    static is_rtl(): boolean
+	/**
+     *  Register plugin translations
+     *  注册插件翻译
+     * @param lang: string
+     * @param translations: std.map<string, string>
+     * @returns void
+     */
+    static register_translations(lang: string, translations: std.map<string, string>): void
+	/**
+     *  Get available languages
+     *  获取可用语言列表
+      @returns Array<string>
+     */
+    static available_languages(): Array<string>
+	/**
+     *  Set language
+     *  设置语言
+     * @param lang: string
+     * @returns void
+     */
+    static set_language(lang: string): void
+}
+export class win32 {
+	/**
+     * 
+     * @param str: string
+     * @returns string
+     */
+    static resid_from_string(str: string): string
+	/**
+     * 
+     * @param str: string
+     * @returns string
+     */
+    static string_from_resid(str: string): string
+	/**
+     * 
+     * @param str: string
+     * @returns Array<string>
+     */
+    static all_resids_from_string(str: string): Array<string>
+	/**
+     * 
+     * @param path: string
+     * @returns number
+     */
+    static load_library(path: string): number
+	/**
+     * 
+     * @param name: string
+     * @returns string | undefined
+     */
+    static env(name: string): string | undefined
+	/**
+     * 
+     * @param path: string
+     * @returns number
+     */
+    static load_file_icon(path: string): number
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @returns number
+     */
+    static reg_get_dword(key: string, name: string): number
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @returns string
+     */
+    static reg_get_string(key: string, name: string): string
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @returns number
+     */
+    static reg_get_qword(key: string, name: string): number
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @param value: number
+     * @returns void
+     */
+    static reg_set_dword(key: string, name: string, value: number): void
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @param value: string
+     * @returns void
+     */
+    static reg_set_string(key: string, name: string, value: string): void
+	/**
+     * 
+     * @param key: string
+     * @param name: string
+     * @param value: number
+     * @returns void
+     */
+    static reg_set_qword(key: string, name: string, value: number): void
+	/**
+     * 
+     * @param key: string
+     * @returns boolean
+     */
+    static is_key_down(key: string): boolean
+	/**
+     *  Support keys:
+     *  "ctrl", "shift", "alt", "win", "A" - "Z", "0" - "9", "f1" - "f12",
+     *  "up", "down", "left", "right", "enter", "space", "tab", "esc", "backspace",
+     *  "delete", "home", "end", "pageup", "pagedown", "insert", "capslock", "numlock",
+     *  "scrolllock", "printscreen", "pause", "minus", "equal", "comma", "period",
+     *  "slash", "backslash", "semicolon", "quote", "bracket_left", "bracket_right"
+     *  case insensitive
+     * @param keys: Array<string>
+     * @returns void
+     */
+    static simulate_hotkeys(keys: Array<string>): void
+	/**
+     * 
+     * @param key: string
+     * @returns void
+     */
+    static simulate_key_press(key: string): void
+	/**
+     * 
+     * @param key: string
+     * @returns void
+     */
+    static simulate_key_down(key: string): void
+	/**
+     * 
+     * @param key: string
+     * @returns void
+     */
+    static simulate_key_up(key: string): void
+	/**
+     * 
+     * @param text: string
+     * @returns void
+     */
+    static simulate_text_input(text: string): void
+	/**
+     * 
+     * @param x: number
+     * @param y: number
+     * @returns void
+     */
+    static simulate_mouse_move(x: number, y: number): void
+	/**
+     *  Buttons: "left", "right", "middle", "x1", "x2"
+     * @param button: string
+     * @returns void
+     */
+    static simulate_mouse_click(button: string): void
+	/**
+     *  Buttons: "left", "right", "middle", "x1", "x2"
+     * @param button: string
+     * @returns void
+     */
+    static simulate_mouse_down(button: string): void
+	/**
+     *  Buttons: "left", "right", "middle", "x1", "x2"
+     * @param button: string
+     * @returns void
+     */
+    static simulate_mouse_up(button: string): void
+}
+export class notification {
+	/**
+     * 
+     * @param message: string
+     * @returns void
+     */
+    static send_basic(message: string): void
+	/**
+     * 
+     * @param message: string
+     * @param path: string
+     * @returns void
+     */
+    static send_with_image(message: string, path: string): void
+	/**
+     * 
+     * @param title: string
+     * @param message: string
+     * @param image_path: string
+     * @returns void
+     */
+    static send_title_text(title: string, message: string, image_path: string): void
+	/**
+     * 
+     * @param title: string
+     * @param message: string
+     * @param buttons: Array<[string, (() => void)]>
+     * @returns void
+     */
+    static send_with_buttons(title: string, message: string, buttons: Array<[string, (() => void)]>): void
+}
+export class infra {
+	/**
+     * 
+     * @param callback: (() => void)
+     * @param delay: number
+     * @returns number
+     */
+    static setTimeout(callback: (() => void), delay: number): number
+	/**
+     * 
+     * @param id: number
+     * @returns void
+     */
+    static clearTimeout(id: number): void
+	/**
+     * 
+     * @param callback: (() => void)
+     * @param delay: number
+     * @returns number
+     */
+    static setInterval(callback: (() => void), delay: number): number
+	/**
+     * 
+     * @param id: number
+     * @returns void
+     */
+    static clearInterval(id: number): void
+	/**
+     * 
+     * @param base64: string
+     * @returns string
+     */
+    static atob(base64: string): string
+	/**
+     * 
+     * @param str: string
+     * @returns string
+     */
+    static btoa(str: string): string
+}
 }
 
 declare module "mshell" {
