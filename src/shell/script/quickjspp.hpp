@@ -2098,6 +2098,53 @@ template <class T> struct js_traits<std::vector<T>> {
     }
 };
 
+/** Convert from std::unordered_map<std::string, T> to Object and vice-versa.
+ * Maps string keys to JS object properties with typed values.
+ */
+template <class T> struct js_traits<std::unordered_map<std::string, T>> {
+    static JSValue wrap(JSContext *ctx, const std::unordered_map<std::string, T> &map) noexcept {
+        try {
+            auto jsobj = Value{weakFromContext(ctx), JS_NewObject(ctx)};
+            for (const auto &[key, value] : map)
+                jsobj[key.c_str()] = value;
+            return jsobj.release();
+        } catch (exception) {
+            return JS_EXCEPTION;
+        } catch (std::exception const &err) {
+            JS_ThrowInternalError(ctx, "%s", err.what());
+            return JS_EXCEPTION;
+        } catch (...) {
+            JS_ThrowInternalError(ctx, "Unknown error");
+            return JS_EXCEPTION;
+        }
+    }
+
+    static std::unordered_map<std::string, T> unwrap(JSContext *ctx, JSValueConst jsobj) {
+        if (!JS_IsObject(jsobj) || JS_IsArray(jsobj)) {
+            JS_ThrowTypeError(ctx, "Expected object for unordered_map conversion");
+            throw exception{ctx};
+        }
+        std::unordered_map<std::string, T> map;
+        Value obj{ctx, JS_DupValue(ctx, jsobj)};
+        
+        JSPropertyEnum *props = nullptr;
+        uint32_t prop_count = 0;
+        if (JS_GetOwnPropertyNames(ctx, &props, &prop_count, jsobj, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0)
+            throw exception{ctx};
+        
+        for (uint32_t i = 0; i < prop_count; i++) {
+            const char *key = JS_AtomToCString(ctx, props[i].atom);
+            if (key) {
+                map[key] = static_cast<T>(obj[key]);
+                JS_FreeCString(ctx, key);
+            }
+            JS_FreeAtom(ctx, props[i].atom);
+        }
+        js_free(ctx, props);
+        return map;
+    }
+};
+
 template <typename U, typename V> struct js_traits<std::pair<U, V>> {
     static JSValue wrap(JSContext *ctx, std::pair<U, V> obj) noexcept {
         try {
