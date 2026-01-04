@@ -52,7 +52,7 @@ struct LocaleMetadata {
 
 struct LocaleFile {
     rfl::Rename<"$metadata", std::optional<LocaleMetadata>> metadata;
-    rfl::ExtraFields<std::map<std::string, std::string>> translations;
+    rfl::ExtraFields<std::string> translations;
 };
 
 }
@@ -281,9 +281,9 @@ bool i18n_manager::load_locale(const std::string& lang) {
     }
     
     // Handle metadata
-    if (locale_data.metadata) {
-        if (locale_data.metadata->get().direction) {
-             lang_translations["$metadata.direction"] = *locale_data.metadata->get().direction;
+    if (locale_data.metadata.value()) {
+        if (locale_data.metadata.value()->direction) {
+             lang_translations["$metadata.direction"] = *locale_data.metadata.value()->direction;
         }
     }
     

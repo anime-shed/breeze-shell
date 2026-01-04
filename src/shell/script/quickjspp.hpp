@@ -2132,6 +2132,20 @@ template <class T> struct js_traits<std::unordered_map<std::string, T>> {
         if (JS_GetOwnPropertyNames(ctx, &props, &prop_count, jsobj, JS_GPN_STRING_MASK | JS_GPN_ENUM_ONLY) < 0)
             throw exception{ctx};
         
+        // RAII guard to ensure cleanup on exception
+        struct PropsGuard {
+            JSContext *ctx;
+            JSPropertyEnum *props;
+            uint32_t count;
+            uint32_t freed_until = 0;
+            ~PropsGuard() {
+                for (uint32_t i = freed_until; i < count; i++) {
+                    JS_FreeAtom(ctx, props[i].atom);
+                }
+                js_free(ctx, props);
+            }
+        } guard{ctx, props, prop_count};
+        
         for (uint32_t i = 0; i < prop_count; i++) {
             const char *key = JS_AtomToCString(ctx, props[i].atom);
             if (key) {
@@ -2139,8 +2153,8 @@ template <class T> struct js_traits<std::unordered_map<std::string, T>> {
                 JS_FreeCString(ctx, key);
             }
             JS_FreeAtom(ctx, props[i].atom);
+            guard.freed_until = i + 1;
         }
-        js_free(ctx, props);
         return map;
     }
 };
