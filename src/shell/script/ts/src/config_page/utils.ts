@@ -1,8 +1,7 @@
 import * as shell from "mshell";
-import { theme_presets, animation_presets } from "./constants";
 import { t, currentLanguage, isRTL } from "../shared/i18n";
 import { menu_controller } from "mshell";
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, } from "react";
 
 export const useHoverActive = () => {
     const [isHovered, setIsHovered] = useState(false);
@@ -64,16 +63,24 @@ export const applyPreset = (preset: any, origin: any, presets: any) => {
     return newPreset;
 };
 
-export const checkPresetMatch = (current: any, preset: any) => {
+export const checkPresetMatch = (current: any, preset: any, ignoreKeys: string[] = []) => {
     if (!current) return false;
     if (!preset) return false;
-    return Object.keys(preset).every(key => JSON.stringify(current[key]) === JSON.stringify(preset[key]));
+    return Object.keys(preset).every(key => {
+        if (ignoreKeys.includes(key)) return true;
+        return JSON.stringify(current[key]) === JSON.stringify(preset[key]);
+    });
 };
 
-export const getCurrentPreset = (current: any, presets: any) => {
-    if (!current) return "default";
+export const getCurrentPreset = (current: any, presets: any, ignoreKeys: string[] = []) => {
+    // If the object is empty or only contains ignored keys, it's default
+    const allPresetKeys = getAllSubkeys(presets);
+    const hasAnyPresetKey = current && Object.keys(current).some(k => allPresetKeys.includes(k) && !ignoreKeys.includes(k));
+
+    if (!current || !hasAnyPresetKey) return "default";
+
     for (const [name, preset] of Object.entries(presets)) {
-        if (preset && checkPresetMatch(current, preset)) {
+        if (preset && checkPresetMatch(current, preset, ignoreKeys)) {
             return name;
         }
     }
@@ -81,22 +88,65 @@ export const getCurrentPreset = (current: any, presets: any) => {
 };
 
 // Config file operations
-export const loadConfig = () => {
-    const current_config_path = shell.breeze.data_directory() + '/config.json';
-    const current_config = shell.fs.read(current_config_path);
-    return JSON.parse(current_config);
+
+export const loadConfig = (): any => {
+    try {
+        const current_config_path = shell.breeze.data_directory() + '/config.json';
+        const current_config = shell.fs.read(current_config_path);
+        return JSON.parse(current_config);
+    } catch (error) {
+        console.error('Failed to load config:', error);
+        // Return default config if file is missing or corrupted
+        return {};
+    }
 };
 
-export const saveConfig = (config: any) => {
-    shell.fs.write(shell.breeze.data_directory() + '/config.json', JSON.stringify(config, null, 4));
+
+export const saveConfig = (config: any): void => {
+    try {
+        const configPath = shell.breeze.data_directory() + '/config.json';
+        const configJson = JSON.stringify(config, null, 4);
+        try {
+            if (shell.fs.exists(configPath)) {
+                const existing = shell.fs.read(configPath);
+                if (existing === configJson) {
+                    return;
+                }
+            }
+        } catch {
+        }
+        shell.fs.write(configPath, configJson);
+    } catch (error) {
+        console.error('Failed to save config:', error);
+        throw new Error(`Failed to save configuration: ${error}`);
+    }
 };
 
+let _saveTimer: ReturnType<typeof shell.infra.setTimeout> | null = null;
+export const saveConfigDebounced = (config: any, delayMs: number = 500): void => {
+    if (_saveTimer !== null) {
+        shell.infra.clearTimeout(_saveTimer);
+        _saveTimer = null;
+    }
+    _saveTimer = shell.infra.setTimeout(() => {
+        _saveTimer = null;
+        saveConfig(config);
+    }, delayMs);
+};
 // Plugin utilities
-export const loadPlugins = () => {
-    return shell.fs.readdir(shell.breeze.data_directory() + '/scripts')
-        .map(v => v.split('/').pop())
-        .filter(v => v.endsWith('.js') || v.endsWith('.disabled'))
-        .map(v => v.replace('.js', '').replace('.disabled', ''));
+
+export const loadPlugins = (): string[] => {
+    try {
+        const scriptsPath = shell.breeze.data_directory() + '/scripts';
+        const files = shell.fs.readdir(scriptsPath);
+        return files
+            .map(v => v.split('/').pop())
+            .filter(v => v.endsWith('.js') || v.endsWith('.disabled'))
+            .map(v => v.replace('.js', '').replace('.disabled', ''));
+    } catch (error) {
+        console.error('Failed to load plugins:', error);
+        return [];
+    }
 };
 
 export const togglePlugin = (name: string) => {
@@ -128,7 +178,183 @@ export const isPluginInstalled = (plugin: any) => {
     return null;
 };
 
-export const getPluginVersion = (installPath: string) => {
-    const local_version_match = shell.fs.read(installPath).match(/\/\/ @version:\s*(.*)/);
-    return local_version_match ? local_version_match[1] : t('plugins.not_installed');
+
+export const getPluginVersion = (installPath: string): string => {
+    try {
+        const content = shell.fs.read(installPath);
+        const local_version_match = content.match(/\/\/ @version:\s*(.*)/);
+        return local_version_match ? local_version_match[1] : t('plugins.not_installed');
+    } catch (error) {
+        console.error('Failed to get plugin version:', error);
+        return t('plugins.not_installed');
+    }
+};
+
+
+export const useTextTruncation = (text: string, maxWidth: number) => {
+    const [truncatedText, setTruncatedText] = useState(text);
+
+    useEffect(() => {
+        // Simple text truncation with ellipsis
+        if (text.length <= 10 || maxWidth <= 0) {
+            setTruncatedText(text);
+            return;
+        }
+
+        // Truncate at word boundaries when possible
+        const ellipsis = '...';
+        const maxChars = Math.max(10, Math.floor(maxWidth / 8)); // Rough estimate
+
+        if (text.length <= maxChars) {
+            setTruncatedText(text);
+        } else {
+            // Try to truncate at word boundary
+            const truncated = text.substring(0, maxChars);
+            const lastSpaceIndex = truncated.lastIndexOf(' ');
+            if (lastSpaceIndex === -1) {
+                setTruncatedText(truncated + ellipsis);
+            } else if (lastSpaceIndex > maxChars * 0.5) {
+                setTruncatedText(truncated.substring(0, lastSpaceIndex) + ellipsis);
+            } else {
+                setTruncatedText(truncated + ellipsis);
+            }
+        }
+    }, [text, maxWidth]);
+
+    return truncatedText;
+};
+
+
+export const useResponsive = (width: number) => {
+    const getBreakpoint = (width: number): string => {
+        if (width >= 1200) return 'xl';
+        if (width >= 992) return 'lg';
+        if (width >= 768) return 'md';
+        if (width >= 576) return 'sm';
+        return 'xs';
+    };
+
+    const [breakpoint, setBreakpoint] = useState(() => getBreakpoint(width));
+
+    useEffect(() => {
+        const newBreakpoint = getBreakpoint(width);
+        setBreakpoint(prev => prev !== newBreakpoint ? newBreakpoint : prev);
+    }, [width]);
+
+    return {
+        breakpoint,
+        isMobile: width < 768,
+        isTablet: width >= 768 && width < 992,
+        isDesktop: width >= 992,
+        isWidescreen: width >= 1200
+    };
+};
+
+
+export const usePerformanceMetrics = () => {
+    const [fps, setFps] = useState(60);
+    const [memoryUsage, setMemoryUsage] = useState(0);
+    const [frameDrops, setFrameDrops] = useState(0);
+    const [slowFrames, setSlowFrames] = useState(0);
+
+    useEffect(() => {
+        let frameCount = 0;
+        let lastTime = Date.now();
+        let timerId: ReturnType<typeof shell.infra.setTimeout> | null = null;
+        let cancelled = false;
+
+        const measurePerformance = () => {
+            if (cancelled) {
+                return; // Bail out immediately if cancelled
+            }
+
+            const now = Date.now();
+            const delta = now - lastTime;
+            const currentFps = Math.round(1000 / delta);
+
+            frameCount++;
+
+            // Update FPS every 10 frames
+            if (frameCount % 10 === 0) {
+                setFps(currentFps);
+
+                // Detect performance issues
+                if (currentFps < 55) {
+                    setFrameDrops(prev => prev + 1);
+                    setSlowFrames(prev => prev + 1);
+                }
+            }
+
+            lastTime = now;
+
+            // Continue measuring if not cancelled
+            if (!cancelled) {
+                timerId = shell.infra.setTimeout(measurePerformance, 16);
+            }
+        };
+
+        // Start performance monitoring
+        timerId = shell.infra.setTimeout(measurePerformance, 16);
+
+        return () => {
+            // Cleanup function - cancel the timer
+            cancelled = true;
+            if (timerId !== null) {
+                shell.infra.clearTimeout(timerId);
+            }
+        };
+    }, []); // Only run once
+
+    useEffect(() => {
+        // Monitor memory usage (simplified for this environment)
+        const checkMemory = () => {
+            try {
+                if (shell && (shell as any).performance && (shell as any).performance.memory) {
+                    const memory = (shell as any).performance.memory();
+                    const usedMB = memory.usedJSHeapSize / (1024 * 1024);
+                    setMemoryUsage(Math.round(usedMB));
+                }
+            } catch (error) {
+                console.error('Memory monitoring error:', error);
+            }
+        };
+
+        // Check memory every 5 seconds
+        const interval = shell.infra.setInterval(checkMemory, 5000);
+
+        return () => {
+            shell.infra.clearInterval(interval);
+        };
+    }, []);
+
+    return {
+        fps,
+        memoryUsage,
+        frameDrops,
+        slowFrames,
+        isPerformanceIssue: fps < 55 || frameDrops > 10,
+
+
+        ...(typeof window !== 'undefined' && window.location && window.location.hostname === 'localhost' ? {
+            showPerformanceWarning: true
+        } : {})
+    };
+};
+
+
+export const reportPerformanceIssue = (type: 'low-fps' | 'high-memory' | 'frame-drops', details: string) => {
+    console.warn(`[Performance Issue] ${type}: ${details}`);
+    const g: any = (typeof globalThis !== 'undefined') ? (globalThis as any) : {};
+    if (typeof g.notification !== 'undefined' && typeof g.notification.send_title_text === 'function') {
+        g.notification.send_title_text('Performance Warning', `${type}: ${details}`, '');
+    }
+};
+
+export const optimizePerformance = () => {
+    // Automatic optimizations based on current performance
+    return {
+        reduceAnimations: false, // Can be set to true if needed
+        disableShadows: false,
+        lowerQualityRendering: false
+    };
 };

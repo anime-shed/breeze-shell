@@ -1,6 +1,6 @@
 import * as shell from "mshell";
 import { showMenu } from "./utils";
-import { memo, useEffect, useContext } from "react";
+import { memo, useEffect, useContext, useCallback, useRef } from "react";
 import { Button, SidebarItem, Text, iconElement } from "./components";
 import {
     ICON_BREEZE,
@@ -12,22 +12,21 @@ import {
 } from "./constants";
 import { UpdateDataContext, NotificationContext, PluginSourceContext } from "./contexts";
 import { useTranslation } from "./utils";
+import { get_async as fetchAsync } from "../utils/network";
 
 const Sidebar = memo(({
     activePage,
     setActivePage,
-    sidebarWidth,
-    windowHeight
+    sidebarWidth
 }: {
     activePage: string;
     setActivePage: (page: string) => void;
     sidebarWidth: number;
-    windowHeight: number;
 }) => {
     const { t } = useTranslation();
-    const { updateData, setUpdateData } = useContext(UpdateDataContext)!;
+    const { setUpdateData } = useContext(UpdateDataContext)!;
     const { errorMessage, setErrorMessage, loadingMessage, setLoadingMessage } = useContext(NotificationContext)!;
-    const { currentPluginSource, setCurrentPluginSource, cachedPluginIndex, setCachedPluginIndex } = useContext(PluginSourceContext)!;
+    const { currentPluginSource, updatePluginSource, setCachedPluginIndex } = useContext(PluginSourceContext)!;
 
     useEffect(() => {
         if (errorMessage) {
@@ -38,30 +37,55 @@ const Sidebar = memo(({
         }
     }, [errorMessage, setErrorMessage]);
 
-    const handleSourceChange = (sourceName: string) => {
-        setCurrentPluginSource(sourceName);
+    // Track last fetched source to prevent loops
+    const lastFetchedSource = useRef<string | null>(null);
+
+    const handleSourceChange = useCallback((sourceName: string) => {
+        if (lastFetchedSource.current === sourceName) {
+            return;
+        }
+        lastFetchedSource.current = sourceName;
+        
+        updatePluginSource(sourceName);
         setCachedPluginIndex(null);
         setLoadingMessage(t("source.switching"));
-
-        shell.network.get_async(PLUGIN_SOURCES[sourceName] + 'plugins-index.json', (data: string) => {
-            setCachedPluginIndex(data);
-            setUpdateData(JSON.parse(data));
-            setLoadingMessage(null);
-        }, (e: any) => {
-            shell.println('Failed to fetch update data:', e);
+        const url = PLUGIN_SOURCES[sourceName] + 'plugins-index.json';
+        let cancelled = false;
+        const timeout = shell.infra.setTimeout(() => {
+            cancelled = true;
             setErrorMessage(t("common.load_failed"));
             setLoadingMessage(null);
+        }, 10000);
+        fetchAsync(url).then((data: string) => {
+            if (cancelled) return;
+            try {
+                const json = JSON.parse(data);
+                setCachedPluginIndex(json);
+                setUpdateData(json);
+            } catch (e) {
+                shell.println('Failed to parse update data:', e as any);
+                setErrorMessage(t("common.load_failed"));
+            }
+        }).catch((e: any) => {
+            if (cancelled) return;
+            shell.println('Failed to fetch update data:', e);
+            setErrorMessage(t("common.load_failed"));
+        }).finally(() => {
+            shell.infra.clearTimeout(timeout);
+            setLoadingMessage(null);
         });
-    };
+    }, [updatePluginSource, setCachedPluginIndex, setLoadingMessage, t, setUpdateData, setErrorMessage]);
 
     useEffect(() => {
-        handleSourceChange(currentPluginSource);
-    }, [currentPluginSource]);
+        // Only trigger initial fetch if we haven't fetched this source yet
+        if (currentPluginSource && lastFetchedSource.current !== currentPluginSource) {
+            handleSourceChange(currentPluginSource);
+        }
+    }, [currentPluginSource, handleSourceChange]);
 
     return (
         <flex
             width={sidebarWidth}
-            height={windowHeight}
             backgroundColor={shell.breeze.is_light_theme() ? '#f0f0f077' : '#40404077'}
             padding={10}
             gap={10}
@@ -70,7 +94,6 @@ const Sidebar = memo(({
         >
             <flex horizontal alignItems="center" gap={3} padding={10}>
                 {iconElement(ICON_BREEZE, 24)}
-                <Text fontSize={18}>Breeze</Text>
             </flex>
             <SidebarItem onClick={() => setActivePage('context-menu')} icon={ICON_CONTEXT_MENU} isActive={activePage === 'context-menu'}>{t("sidebar.main_config")}</SidebarItem>
             <SidebarItem onClick={() => setActivePage('update')} icon={ICON_UPDATE} isActive={activePage === 'update'}>{t("sidebar.update")}</SidebarItem>

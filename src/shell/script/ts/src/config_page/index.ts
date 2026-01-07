@@ -42,6 +42,7 @@ export {
     getCurrentPreset,
     loadConfig,
     saveConfig,
+    saveConfigDebounced,
     loadPlugins as reloadPlugins,
     togglePlugin,
     deletePlugin,
@@ -66,12 +67,17 @@ export {
 } from './constants';
 
 import * as shell from "mshell";
+import React from "react";
+import { createRenderer } from "../react/renderer";
 import ConfigApp from './ConfigApp';
+
+const DEFAULT_WINDOW_WIDTH = 800;
+const DEFAULT_WINDOW_HEIGHT = 600;
 
 let existingConfigWindow: shell.breeze_ui.window | null = null;
 export const showConfigPage = () => {
     shell.breeze.set_can_reload_js(false);
-    const win = shell.breeze_ui.window.create_ex("Breeze Config", 800, 600, () => {
+    const win = shell.breeze_ui.window.create_ex("Breeze Config", DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT, () => {
         shell.breeze.set_can_reload_js(true)
         if (existingConfigWindow === win)
             existingConfigWindow = null;
@@ -82,6 +88,25 @@ export const showConfigPage = () => {
 
     const widget = shell.breeze_ui.widgets_factory.create_flex_layout_widget();
     const renderer = createRenderer(widget);
-    renderer.render(React.createElement(ConfigApp, null));
-    win.set_root_widget(widget)
+
+    const onResize = (w: number, h: number) => {
+        try {
+            renderer.render(React.createElement(ConfigApp, { initialWidth: w, initialHeight: h }));
+        } catch (error) {
+            shell.println(`[ConfigPage] Render error: ${error}`);
+        }
+    };
+
+    // Initial render
+    onResize(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT);
+    win.set_root_widget(widget);
+
+    interface WindowWithResize extends shell.breeze_ui.window {
+        set_resize_callback?: (callback: (w: number, h: number) => void) => void;
+    }
+    const winWithResize = win as WindowWithResize;
+    // Listen for resize events if supported
+    if (winWithResize.set_resize_callback) {
+        winWithResize.set_resize_callback(onResize);
+    }
 }

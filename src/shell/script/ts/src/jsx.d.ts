@@ -60,6 +60,7 @@ declare module 'react' {
         y?: number;
         width?: number;
         height?: number;
+        alt?: string;
       },
       spacer: {
         size?: number;
